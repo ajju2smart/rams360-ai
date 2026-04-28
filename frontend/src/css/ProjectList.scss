@@ -1,0 +1,334 @@
+.project-list-button {
+  background-color: #1d5460;
+  color: white;
+  border-radius: 5px;
+  border: none;
+}
+.Project-list-button-btn {
+  border: 2px solid #398935;
+  background-color: #398935;
+  color: white;
+  width: 150px;
+  margin-right: 15px;
+  border-radius: 5px;
+  padding: auto;
+}
+.Project-list-button-btn:hover {
+  background-color: #398935;
+  border: #398935;
+  color: white;
+}
+.add-project-btn-permission-cancel {
+  background-color: #398935;
+  color: white;
+  border: 2px solid #398935;
+  background-color: #398935;
+  width: 150px;
+  border-radius: 5px;
+  padding: auto;
+}
+@media only screen and (max-width: 400px) {
+  .add-project-btn-permission-cancel {
+    font-size: 10px !important;
+  }
+}
+.add-project-btn-permission {
+  background-color: #1d5460;
+  color: white;
+  width: 160px;
+  border: 2px solid #1d5460;
+  padding: auto;
+  border-radius: 5px;
+}
+.add-project-btn-permission:hover {
+  background-color: #1d5460;
+  border: #1d5460;
+}
+@media only screen and (max-width: 400px) {
+  .add-project-btn-permission {
+    font-size: 10px !important;
+  }
+}
+
+.add-project-btn {
+  background-color: #1d5460;
+  color: white;
+  width: 160px;
+  border: 2px solid #1d5460;
+  padding: auto;
+  border-radius: 5px;
+}
+// .add-project-btn:hover {
+//   background-color: #e17f2f;
+//   border: 2px solid #e17f2f;
+//   padding: auto;
+// }
+.add-project-btncancel {
+  background-color: #1d5460;
+  color: white;
+  border-radius: 5px;
+  border: none;
+  margin-right: 3px;
+}
+.delete-cancel-btn_1:hover {
+  background-color: #1d4e58;
+}
+
+.project-list-button:hover {
+  background-color: #e17f2f;
+}
+.save-button-1:hover {
+  background-color: rgb(12, 69, 122);
+}
+
+@media only screen and (min-width: 700px) {
+  .add-project-btncancel {
+    padding: 4px 25px 4px 25px !important;
+    margin-right: 10%;
+    margin-left: 20px;
+  }
+}
+
+.add-project-btncancel:hover {
+  background-color: #e17f2f;
+}
+
+.add-project-button {
+  display: flex;
+  justify-content: end;
+}
+.error {
+  color: red;
+  font-size: small;
+}
+
+// PROJECT DETAILS PAGE
+
+.project-detail-h {
+  background-color: #1d5460;
+  color: white;
+  border-radius: 5px;
+  padding: 10px 0px 4px 15px;
+  margin-top: 20px;
+}
+.project-list-padding {
+  padding: 25px;
+}
+.project-details-width {
+  display: flex;
+  justify-content: space-between;
+}
+
+///edit project list
+.edit-project-list {
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+}
+.project-permission-page {
+  background-color: #1d5460;
+  color: white;
+  border-radius: 5px;
+  padding: 5px 40px 5px 40px;
+  margin-top: 10px;
+  border: none;
+}
+.project-permission-page:hover {
+  background-color: rgb(19, 103, 124);
+}
+@media only screen and (max-width: 424px) {
+  .add-project-form {
+    display: block;
+  }
+  .add-project-control {
+    width: 100%;
+    margin-top: 10px;
+  }
+}
+.prt-dtails-page-alignments {
+  font-size: 14px;
+}
+@media only screen and (max-width: 350px) {
+  .prt-dtails-page-alignments {
+    font-size: 10px !important;
+  }
+}
+
+////Edit project Details
+.pro-edt-btn {
+  background-color: #1d5460;
+  color: white;
+  border-radius: 5px;
+  padding: 8px 40px 8px 40px;
+  margin-top: 10px;
+  border: none;
+  font-weight: bold;
+  font-size: 18px;
+}
+
+@media only screen and (min-width: 1000px) {
+  .edit-project-list-page {
+    padding-left: 8%;
+    padding-right: 8%;
+  }
+}
+.pro-cancel-btn {
+  background-color: #398935;
+  color: white;
+  border-radius: 5px;
+  padding: 8px 40px 8px 40px;
+  margin-top: 10px;
+  border: none;
+  font-size: 18px;
+  font-weight: bold;
+}
+
+.pro-cancel-btn:hover {
+  background-color: #e17f2f;
+}
+// .form-control {
+//   width: auto !important;
+// }
+
+@media only screen and (min-width: 1000px) {
+  .project-description{
+    padding-left: 8%;
+    padding-right: 8%;
+  }
+}
+
+@media only screen and (min-width: 1000px) {
+  .project-listpage-minimize {
+    padding-left: 8%;
+    padding-right: 4%;
+  }
+}
+@media only screen and (min-width: 1000px) {
+  .project-customer-name {
+    padding-left: 8%;
+    padding-right:0px;
+   
+  }
+}
+@media only screen and (min-width: 1000px) {
+  .project-listpage-minimize-left {
+    padding-left: 4%;
+    padding-right: 8%;
+  }
+}
+
+@media only screen and (min-width: 1000px) {
+  .edit-project-list-page {
+    padding-left: 8%;
+    padding-right: 8%;
+  }
+}
+.dropdown {
+  color: black;
+  background-color: unset !important;
+  border-color: transparent !important;
+  border: unset !important;
+  box-shadow: unset !important;
+  text-decoration: none;
+}
+.dropdown:hover {
+  color: black;
+}
+.dropdown-toggle::after {
+  visibility: hidden;
+  // color: blue !important;
+}
+
+.viewRow {
+  padding-top: 12px !important;
+}
+.dropdown-item a {
+  text-decoration: none !important;
+}
+.icon:hover {
+  color: black;
+}
+.icon {
+  color: black;
+}
+.modal-project {
+  min-height: 20px !important;
+  max-width: 35% !important;
+}
+
+.project-delete-modal-user {
+  width: 40%;
+  height: 300px;
+  margin: 17% 10% 0% 34% !important;
+  display: flex !important;
+  justify-content: center !important;
+  align-items: center !important;
+}
+.btn-check:focus + .btn-primary,
+.btn-primary:focus {
+  color: #fff;
+  // background-color: #e17f2f;
+  // border-color: #e17f2f;
+  // box-shadow: 0 0 0 0.25rem #e17f2f;
+}
+.save-btn {
+  min-width: 175px;
+  background-color:oklch(45.12% 0.267 var(--user-theme-color-hue));
+  border: #1d5460;
+  font-weight: 500;
+  border-radius: 3px;
+}
+.save-btn:hover{
+  background-color: #0c4c5a;
+  border: #1d5460;
+  border-radius: 3px;
+}
+.save-btn::after{
+  background-color: #0c4c5a;
+    border: #1d5460;
+    border-radius: 3px;
+}
+.save-btn:disabled{
+  background-color: #0c4c5a !important;
+    border: #1d5460 !important;
+    border-radius: 3px;
+}
+.save-btn:active{
+  background-color: #0c4c5a;
+    border: #1d5460;
+    border-radius: 3px;
+}
+.save-btn:focus {
+  background-color: #0c4c5a;
+  border: #1d5460;
+  box-shadow: 0 0 0 0.25rem #0f51322e;
+}
+.save-btn:active:focus{
+  box-shadow: 0 0 0 0.25rem #0f51322e;
+}
+
+
+// Button Start
+
+.save-btn-btn {
+  min-width: 80px;
+  background-color: #1d5460;
+  border: #1d5460;
+  font-weight: 500;
+  border-radius: 3px;
+}
+.save-btn-btn:hover{
+  background-color: #1d5460;
+}
+/* For all tooltips globally */
+.tooltip-inner {
+  font-size: 8px !important;
+  color: red !important;
+  background-color: white !important;
+  padding: 5px 10px !important;
+}
+
+
+.bs-tooltip-bottom .tooltip-arrow::before {
+  border-bottom-color: white !important;
+}

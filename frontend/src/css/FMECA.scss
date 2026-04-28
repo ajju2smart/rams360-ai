@@ -1,0 +1,129 @@
+// .table{
+//     margin-top: 10%;
+// }
+// .table{
+//     font-size: small;
+//     font-family: sans-serif;
+// }
+
+.fmeca-main {
+  margin-top: 6%;
+  @media only screen and (min-width: 320px) and (max-width: 424px) {
+    margin-top: 25%;
+  }
+  @media only screen and (min-width: 425px) and (max-width: 500px) {
+    margin-top: 20%;
+  }
+  @media only screen and (min-width: 500px) and (max-width: 768px) {
+    margin-top: 10%;
+  }
+}
+
+.fmeca-main {
+  position: relative;
+}
+
+.thead {
+    background-color: var(--primary-color);
+      color: var(--secondary-color);
+
+}
+
+
+.product-modal-heading {
+  background-color: var(--primary-color);
+  color: var(--secondary-color);
+}
+.tree1 {
+  margin-top: 10%;
+}
+.table-head {
+  background-color: var(--primary-color);
+  color: var(--secondary-color);
+}
+.tableSelect {
+  border: #fff;
+}
+.table-input {
+  width: 90%;
+  // border: 1px black !important;
+}
+.col-table {
+  background-color: #fff !important;
+}
+.popup-header {
+  margin-left: 42%;
+}
+.fmeca-form-div {
+  margin: 2rem;
+  @media screen and (max-width: 331px) {
+    margin: 15px 0px;
+  }
+}
+.fmeca-form-group {
+  // width: 70%;
+  @media only screen and (min-width: 320px) and (max-width: 768px) {
+    width: 100%;
+  }
+}
+.fmeca-button {
+  margin-left: 30% !important;
+
+}
+.pbs-button-1{
+  margin-left: 40%;
+}
+.ok-buttons{
+  margin-left: 35% !important;
+}
+.delete-cancel-btn1 {
+  width: 150px;
+  @media only screen and (min-width: 320px) and (max-width: 740px) {
+    width: 50%;
+    margin-top: 10%;
+    margin-left: 10%;
+  }
+}
+.delete-cancel-btn {
+  width: 175px;
+
+  // @media only screen and (min-width: 320px) and (max-width: 740px) {
+  //   width: 30%;
+  // }
+}
+
+.MuiInput-underline.Mui-error:after {
+  transform: scaleX(0) !important;
+  border-bottom-color: blue !important;
+}
+.MuiInput-underline.Mui-error {
+  transform: scaleX(1) !important;
+  border-bottom-color: blue !important;
+}
+.buttons {
+  margin-left: 40%;
+}
+.table > :not(:first-child) {
+  border-top: 0px !important;
+}
+.button {
+  margin-left: 10%;
+}
+.fmecaModel {
+  max-width: 90% !important;
+}
+.model {
+  width: auto;
+  margin-left: 40%;
+}
+.labelFont {
+  font-size: small;
+}
+.labelFont1 {
+  font-size: 15px;
+}
+.fmeca-buttons {
+  @media only screen and (min-width: 320px) and (max-width: 740px) {
+    width: 90%;
+  }
+}

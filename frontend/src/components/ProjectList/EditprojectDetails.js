@@ -1,0 +1,1252 @@
+import React, { useEffect, useState } from "react";
+import "../../css/ProjectList.scss";
+import { Form, Row, Col, Card, Modal, Button, Tooltip, OverlayTrigger, Spinner } from "react-bootstrap";
+import Label from "../core/Label";
+import * as Yup from "yup";
+import { Formik, ErrorMessage } from "formik";
+import { useHistory } from "react-router-dom";
+import Api from "../../Api";
+import Select from "react-select";
+import { currecyvalue } from "./currencyvalue";
+import Environment from "../core/Environment";
+import FrUnit from "../core/FRUnit";
+import Success from "../core/Images/success.png";
+import { FaExclamationCircle } from "react-icons/fa";
+import { faCircleCheck } from "@fortawesome/free-solid-svg-icons";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import Loader from "../core/Loader";
+//import { Loader } from "semantic-ui-react";
+import { customStyles } from "../core/select";
+import { useAuth } from "../../context/AuthContext";
+
+export default function EditprojectDetails(props) {
+  const { user } = useAuth();
+  const projectId = props?.location?.state?.projectID;
+  const [customerName, setCustomerName] = useState();
+  const [operation, setOperation] = useState();
+  const [productlifekm, setProductLifeKm] = useState();
+  const [pdtlifeoptncycle, setPdtLifeOptnCycle] = useState();
+  const [avgopthrperday, setAvgOptHrPerDay] = useState();
+  const [avgcyclesperoperationnhr, setAvgCyclesPerOprnHr] = useState();
+  const [avgannualoperationhr, setAvgAnnualOperationHr] = useState();
+  const [avgannualmilekm, setAvgAnnualMileKm] = useState();
+  const [avgannualoperationcycle, setAvgAnnualOperationCycle] = useState();
+  const [avgspeedkm, setAvgSpeedKm] = useState();
+  const [frtarget, setFrTarget] = useState();
+  const [currency, setCurrency] = useState();
+  const [deliveryterm, setDeliveryTerm] = useState();
+  const [environments, setEnvironments] = useState();
+  const [pdtlifeinyears, setPdtLifeInYears] = useState();
+  const [pdtlifeinmiles, setPdtLifeInMiles] = useState();
+  const [daysofOprtnperyear, setDaysOfOprtnPerYear] = useState();
+  const [avgpoweronhrday, setAvgPowerOnHrDay] = useState();
+  const [avgcycleperpoweronhr, setAvgCyclePerPowerOnHr] = useState();
+  const [avgannualpweronhr, setAvgAnnualPwerOnHr] = useState();
+  const [avgannualmilegemile, setAvgAnnualMilegeMile] = useState();
+  const [avgannualpwroncycle, setAvgAnnualPwrOnCycle] = useState();
+  const [avgspeedmiles, setAvgSpeedMiles] = useState();
+  const [frunit, setFrUnit] = useState();
+  const [pricesvalidity, setPricesValidity] = useState();
+  const [deliverylocation, setDeliveryLocation] = useState();
+  const [temp, setTemp] = useState();
+  const [show, setShow] = useState();
+  const [companyName, setCompanyName] = useState();
+  const [projectName, setProjectName] = useState();
+  const [projectNumber, setProjectNumber] = useState();
+  const [projectOwner, setprojectOwner] = useState();
+  const [projectDescription, setprojectDescription] = useState();
+  const [companyId, setCompanyId] = useState();
+  const [userList, setUserList] = useState();
+  const [ownerId, setOwnerId] = useState();
+  const [status, setStatus] = useState();
+  const [statusMessage, setStatusMessage] = useState();
+  const history = useHistory();
+  const [permission, setPermission] = useState();
+  const role = user?.role;
+  const userId = user?._id;
+  const [isOwner, setIsOwner] = useState(false);
+  const [createdBy, setCreatedBy] = useState();
+  const [nonShortProbability, setNonShortProbability] = useState();
+  const [mMaxValue, setmMaxValue] = useState();
+  const [isLoading, setISLoading] = useState(true);
+  // NEW: tracks whether the save API call is in-flight
+  const [isSaving, setIsSaving] = useState(false);
+
+  const getProjectPermission = () => {
+    const id = projectId;
+    Api.get(`/api/v1/projectPermission/list`, {
+      params: {
+        authorizedPersonnel: userId,
+        projectId: projectId,
+        userId: userId,
+      },
+    })
+      .then((res) => {
+        const data = res?.data?.data;
+        const modules = data?.modules || [];
+        const module = modules.find(m => m.name === "Projects"); // match index 8
+        setPermission(module ?? null);
+        setISLoading(false);
+      })
+      .catch((error) => {
+        const errorStatus = error?.response?.status;
+        if (errorStatus === 401) {
+          logout();
+        }
+      });
+  };
+
+  const projectSidebar = () => {
+    Api.get(`/api/v1/projectCreation/${projectId}`, {
+      headers: {
+        userId: userId,
+      },
+    }).then((res) => {
+      setIsOwner(res.data.data.isOwner);
+      setCreatedBy(res.data.data.createdBy);
+    });
+  };
+  useEffect(() => {
+    getProjectPermission();
+    projectSidebar();
+  }, [projectId]);
+
+  const getUsers = () => {
+    const companyId = user?.companyId;
+    const userId = user?._id;
+
+    Api.get("/api/v1/user/list", {
+      params: {
+        companyId: companyId,
+        userId: userId,
+      },
+    })
+      .then((response) => {
+        setUserList(response?.data?.usersList);
+      })
+      .catch((error) => {
+        const errorStatus = error?.response?.status;
+        if (errorStatus === 401) {
+          logout();
+        }
+      });
+  };
+
+  useEffect(() => {
+    getProjectDetails();
+    getUsers();
+  }, []);
+
+  // Log out
+  const logout = () => {
+    localStorage.clear(history.push("/login"));
+    window.location.reload();
+  };
+
+  const showModal = (status) => {
+    setShow(true);
+    setTimeout(() => {
+      setShow(false);
+      history.push("/project/list");
+    }, 2000);
+  };
+
+  const getProjectDetails = () => {
+    Api.get(`/api/v1/projectCreation/${projectId}`, {
+      headers: { userId: userId },
+    })
+      .then((response) => {
+        const data = response?.data?.data;
+        setCompanyName(data?.companyId?.companyName);
+        setCustomerName(data?.customerName);
+        setProjectName(data?.projectName);
+        setProjectNumber(data?.projectNumber);
+        setprojectDescription(data?.projectDesc);
+
+        setprojectOwner(
+          data?.projectOwner
+            ? {
+              label: data?.projectOwner?.name,
+              value: data?.projectOwner?._id,
+            }
+            : ""
+        );
+        setCompanyId(data?.projectOwner?.companyId);
+        setOperation(data?.operationalPhase);
+        setProductLifeKm(data?.productLifekm);
+        setPdtLifeOptnCycle(data?.productLifeOperationCycle);
+        setCurrency(data?.currency ? { value: data?.currency, label: data?.currency } : "");
+        setAvgOptHrPerDay(data?.avgOperationalHrsPerDay);
+        setAvgCyclesPerOprnHr(data?.avgCyclePerOperationalHrs);
+        setAvgAnnualOperationHr(data?.avgAnnualOperationalHrs);
+        setAvgAnnualMileKm(data?.avgAnnualMileageKm);
+        setAvgAnnualOperationCycle(data?.avgAnnualOperationCycles);
+        setAvgSpeedKm(data?.avgSpeedKm);
+        setFrTarget(data?.frTarget);
+        setDeliveryTerm(data?.deliveryTerms);
+        setEnvironments(data?.environment ? { value: data?.environment, label: data?.environment } : "");
+        setPdtLifeInYears(data?.productLifeYears);
+        setPdtLifeInMiles(data?.productLifeMiles);
+        setDaysOfOprtnPerYear(data?.daysOperationPerYear);
+        setAvgPowerOnHrDay(data?.avgPowerHrsPerDay);
+        setAvgCyclePerPowerOnHr(data?.avgCyclePerPowerOnHrs);
+        setAvgAnnualPwerOnHr(data?.avgAnnualPowerOnHrs);
+        setAvgAnnualMilegeMile(data?.avgAnnualMileageInMiles);
+        setAvgAnnualPwrOnCycle(data?.avgAnnualPowerOnCycles);
+        setAvgSpeedMiles(data?.avgSpeedMiles);
+        setFrUnit(data?.frUnit ? { value: data?.frUnit, label: data?.frUnit } : "");
+        setPricesValidity(data?.priceValidity);
+        setDeliveryLocation(data?.deliveryLocation);
+        setNonShortProbability(data?.nonShortProbability);
+        setmMaxValue(data?.mMaxValue);
+        setTemp(data?.temperature);
+      })
+      .catch((error) => {
+        const errorStatus = error?.response?.status;
+        if (errorStatus === 401) {
+          logout();
+        }
+      });
+  };
+
+  const SignInSchema = Yup.object().shape({
+    name: Yup.string().required("Project name is required"),
+    number: Yup.string().required("Project number is required"),
+    description: Yup.string().required("Project description is required"),
+    opreationalPhase: Yup.string()
+      .required("Operational phase is required")
+      .test(
+        "no-only-spaces",
+        "Operational phase cannot contain only spaces",
+        (value) => value && value.trim().length > 0
+      )
+      .max(20, "Maximum 20 characters allowed")
+      .matches(
+        /^[A-Za-z0-9!@#$%^&*()_\-+=\[\]{};:'",.<>/?\\|`~ ]+$/,
+        "Only alphanumeric and special characters are allowed"
+      ),
+
+    avgday: Yup.number()
+      .typeError("You must specify a number")
+      .min(1, "Min value 1.")
+      .max(24, "Max value 24.")
+      .required("Average operational hours per day is required")
+      .test("max-decimals", "Only up to 2 decimal places allowed", (value) => {
+        if (value === undefined || value === null) return true;
+        return /^\d+(\.\d{1,2})?$/.test(value.toString());
+      }),
+
+    avghour: Yup.number().min(1, "Min value 1.").max(8784, "max value 8784").required("Average annual operational hours is required").test("max-decimals", "Only up to 2 decimal places allowed", (value) => {
+      if (value === undefined || value === null) return true;
+      return /^\d+(\.\d{1,2})?$/.test(value.toString());
+    }),
+    avgannualpweronhr: Yup.number().min(1, "Min value 1.").max(8784, "max value 8784").test("max-decimals", "Only up to 2 decimal places allowed", (value) => {
+      if (value === undefined || value === null) return true;
+      return /^\d+(\.\d{1,2})?$/.test(value.toString());
+    }),
+
+    avgpoweronhrday: Yup.number()
+      .typeError("You must specify a number")
+      .min(0, "Min value 0.")
+      .max(24, "Max value 24.")
+      .test(
+        "max-2-decimals",
+        "Only up to 2 decimal places are allowed",
+        (value) => {
+          if (value === undefined || value === null) return true; // skip empty
+          return /^\d+(\.\d{1,2})?$/.test(value.toString());
+        }
+      ),
+    environment: Yup.object().required("Environment is required"),
+    productlife: Yup.number()
+      .typeError("Product life must be a number")
+      .required("Product life is required")
+      .min(1, "Minimum value is 1")
+      .max(99, "Maximum value is 99")
+      .test("decimals", "Only up to 2 decimal places allowed", (value) => {
+        if (value === undefined || value === null) return true;
+        return /^\d+(\.\d{1,2})?$/.test(value.toString());
+      }),
+    productlifekm: Yup.number()
+      .typeError("You must specify a number")
+      .min(1, "Minimum 1 value is required")
+      .max(999999999, "Maximum value is 999999999")
+      .nullable()
+      .test("max-decimals", "Only up to 4 decimal places allowed", (value) => {
+        if (value === undefined || value === null) return true;
+        return /^\d+(\.\d{1,4})?$/.test(value.toString());
+      }),
+    pdtlifeinmiles: Yup.string()
+      .required("Product life miles is required")
+      .matches(
+        /^\d{1,20}(\.\d{1,4})?$/,
+        "Only numbers allowed with max 20 digits and up to 4 decimal places"
+      )
+      .nullable(),
+    pdtlifeoptncycle: Yup.string()
+      .matches(
+        /^(?=.{1,29}$)\d{1,25}(\.\d{1,4})?$/,
+        "Maximum 25 digits before decimal and up to 4 digits after decimal (total 29 digits) allowed"
+      )
+      .test("max-decimals", "Only up to 4 decimal places allowed", (value) => {
+        if (value === undefined || value === null) return true;
+        return /^\d+(\.\d{1,4})?$/.test(value.toString());
+      })
+      .nullable(),
+    daysopration: Yup.number()
+      .typeError("You must specify a number")
+      .min(1, "Minimum value is 1.")
+      .max(366, "Maximum value is 366.")
+      .integer("Decimal values are not allowed")
+      .required("Days of operation per year is required"),
+
+    temp: Yup.string().required("Temperature is required"),
+    customerName: Yup.string().required("Customer name is required"),
+
+    avgcyclesperoperationnh: Yup.number()
+      .typeError("You must specify a number")
+      .required("Average cycles per operation is required")
+
+      .test(
+        "max-3-decimals",
+        "Only up to 3 decimal places are allowed",
+        (value) => {
+          if (value === undefined || value === null) return false; // required, so must fail if empty
+          return /^\d+(\.\d{1,3})?$/.test(value.toString());
+        }
+      ),
+    avgcycleperpoweronhr: Yup.number()
+      .typeError("You must specify a number")
+      .required("Average cycles per power on hour is required")
+      .test(
+        "max-3-decimals",
+        "Only up to 3 decimal places are allowed",
+        (value) => {
+          if (value === undefined || value === null) return false; // required
+          return /^\d+(\.\d{1,3})?$/.test(value.toString());
+        }
+      ),
+    avgannualmilekm: Yup.number()
+      .typeError("You must specify a number")
+      .required("Average annual mileage (km) is required")
+      .test(
+        "max-4-decimals",
+        "Only up to 4 decimal places are allowed",
+        (value) => {
+          if (value === undefined || value === null) return false; // required
+          return /^\d+(\.\d{1,4})?$/.test(value.toString());
+        }
+      ),
+    avgannualmilegemile: Yup.number()
+      .typeError("You must specify a number")
+      .required("Average annual mileage miles is required")
+      .test(
+        "max-4-decimals",
+        "Only up to 4 decimal places are allowed",
+        (value) => {
+          if (value === undefined || value === null) return false; // required
+          return /^\d+(\.\d{1,4})?$/.test(value.toString());
+        }
+      ),
+    avgannualoperationcycle: Yup.number()
+      .typeError("You must specify a number")
+      .required("Average annual operation cycle is required")
+      .test(
+        "max-4-decimals",
+        "Only up to 4 decimal places are allowed",
+        (value) => {
+          if (value === undefined || value === null) return false; // required
+          return /^\d+(\.\d{1,4})?$/.test(value.toString());
+        }
+      ),
+
+    avgannualpwroncycle: Yup.number()
+      .typeError("You must specify a number")
+      .required("Average annual power on cycle is required")
+      .test(
+        "max-4-decimals",
+        "Only up to 4 decimal places are allowed",
+        (value) => {
+          if (value === undefined || value === null) return false; // required
+          return /^\d+(\.\d{1,4})?$/.test(value.toString());
+        }
+      ),
+    avgspeedkm: Yup.number()
+      .typeError("You must specify a number")
+      .required("Average speed (km) is required")
+      .test(
+        "max-4-decimals",
+        "Only up to 4 decimal places are allowed",
+        (value) => {
+          if (value === undefined || value === null) return false; // required
+          return /^\d+(\.\d{1,4})?$/.test(value.toString());
+        }
+      ),
+    avgspeedmiles: Yup.number()
+      .typeError("You must specify a number")
+      .required("Average speed (miles) is required")
+      .test(
+        "max-4-decimals",
+        "Only up to 4 decimal places are allowed",
+        (value) => {
+          if (value === undefined || value === null) return false; // required
+          return /^\d+(\.\d{1,4})?$/.test(value.toString());
+        }
+      ),
+    deliverylocation: Yup.string()
+      .nullable()
+      .optional()
+      .matches(/^[A-Za-z, ]*$/, "Only letters and comma are allowed")
+      .max(20, "Maximum 20 characters allowed"),
+
+    frtarget: Yup.string()
+      .nullable()
+      .test(
+        "valid-frtarget",
+        "Value must be a number with up to 20 digits before and after the decimal",
+        (value) => {
+          if (!value || value.trim() === "") return true; // optional field
+          return /^\d{1,20}(\.\d{1,20})?$/.test(value);
+        }
+      ),
+  });
+
+  const submitForm = (values) => {
+    // CHANGED: set isSaving to true to disable button and show spinner
+    setIsSaving(true);
+
+    const projectOwner = values.owner.value;
+    const frUnit = values.frunit.value;
+    const environment = values.environment.value;
+    const currency = values.currency.value;
+    Api.patch(`/api/v1/projectCreation/update/details/${projectId}`, {
+      customerName: values.customerName,
+      projectName: values.name,
+      projectDesc: values.description,
+      projectNumber: values.number,
+      projectOwner: projectOwner,
+      operationalPhase: values.opreationalPhase,
+      productLifeYears: values.productlife,
+      productLifekm: values.productlifekm,
+      productLifeMiles: values.pdtlifeinmiles,
+      productLifeOperationCycle: values.pdtlifeoptncycle,
+      daysOperationPerYear: values.daysopration,
+      avgOperationalHrsPerDay: values.avgday,
+      avgPowerHrsPerDay: values.avgpoweronhrday,
+      avgCyclePerOperationalHrs: values.avgcyclesperoperationnh,
+      avgCyclePerPowerOnHrs: values.avgcycleperpoweronhr,
+      avgAnnualOperationalHrs: values.avghour,
+      avgAnnualPowerOnHrs: values.avgannualpweronhr,
+      avgAnnualMileageKm: values.avgannualmilekm,
+      avgAnnualMileageInMiles: values.avgannualmilegemile,
+      avgAnnualOperationCycles: values.avgannualoperationcycle,
+      avgAnnualPowerOnCycles: values.avgannualpwroncycle,
+      avgSpeedKm: values.avgspeedkm,
+      avgSpeedMiles: values.avgspeedmiles,
+      frTarget: values.frtarget,
+      frUnit: frUnit,
+      currency: currency,
+      priceValidity: values.pricesvalidity,
+      deliveryTerms: values.deliveryterm,
+      deliveryLocation: values.deliverylocation,
+      environment: environment,
+      temperature: values.temp,
+      nonShortProbability: values.nonShortProbability,
+      mMaxValue: values.mMaxValue,
+      userId: userId,
+      companyId: companyId,
+    })
+      .then((response) => {
+        const status = response?.status;
+        const message = response?.data?.message;
+        setStatusMessage(message);
+        setStatus(status);
+        showModal(status);
+      })
+      .catch((error) => {
+        const errorStatus = error?.response?.status;
+        if (errorStatus === 401) {
+          logout();
+        }
+      })
+      // CHANGED: always reset isSaving when the request settles (success or error)
+      .finally(() => {
+        setIsSaving(false);
+      });
+  };
+
+  return (
+    <div style={{ marginTop: "90px" }}>
+      {isLoading ? (
+        <Loader />
+      ) : permission?.read === true ||
+        permission?.read === undefined ||
+        role === "admin" ||
+        (isOwner === true && createdBy === userId) ? (
+        <Formik
+          enableReinitialize={true}
+          initialValues={{
+            name: projectName,
+            customerName: customerName,
+            number: projectNumber,
+            description: projectDescription,
+            owner: projectOwner,
+            opreationalPhase: operation,
+            avgday: avgopthrperday,
+            avghour: avgannualoperationhr,
+            environment: environments,
+            productlife: pdtlifeinyears,
+            daysopration: daysofOprtnperyear,
+            temp: temp,
+            productlifekm: productlifekm,
+            pdtlifeinmiles: pdtlifeinmiles,
+            pdtlifeoptncycle: pdtlifeoptncycle,
+            avgpoweronhrday: avgpoweronhrday,
+            avgcyclesperoperationnh: avgcyclesperoperationnhr,
+            avgcycleperpoweronhr: avgcycleperpoweronhr,
+            avgannualpweronhr: avgannualpweronhr,
+            avgannualmilekm: avgannualmilekm,
+            avgannualmilegemile: avgannualmilegemile,
+            avgannualoperationcycle: avgannualoperationcycle,
+            avgannualpwroncycle: avgannualpwroncycle,
+            avgspeedkm: avgspeedkm,
+            avgspeedmiles: avgspeedmiles,
+            frtarget: frtarget,
+            frunit: frunit,
+            currency: currency,
+            pricesvalidity: pricesvalidity,
+            deliveryterm: deliveryterm,
+            deliverylocation: deliverylocation,
+            nonShortProbability: nonShortProbability,
+            mMaxValue: mMaxValue,
+          }}
+          validationSchema={SignInSchema}
+          onSubmit={(values) => submitForm(values)}
+        >
+          {(formik) => {
+            const { handleSubmit, handleBlur, setFieldValue, handleChange, values, dirty } = formik;
+            return (
+              <div className="mx-4">
+                <div className="mttr-sec">
+                  <p className=" mb-0 para-tag">Project Details</p>
+                </div>
+                <Form onSubmit={handleSubmit}>
+                  <fieldset
+                    disabled={
+                      permission?.write === true ||
+                        permission?.write === "undefined" ||
+                        role === "admin" ||
+                        (isOwner === true && createdBy === userId)
+                        ? null
+                        : "disabled"
+                    }
+                  >
+                    <Card className="card-color mt-2">
+                      <div className="project-list-padding">
+                        <div className="project-name">
+                          <h4 className="text-center mb-2">
+                            <b>{projectName}</b>
+                          </h4>
+                        </div>
+
+                        <div>
+                          <Row>
+                            <Col>
+                              <Form.Group>
+                                <Label notify={true}>Customer Name</Label>
+                                <Form.Control
+                                  type="name"
+                                  className="mt-1"
+                                  name="customerName"
+                                  value={values.customerName}
+                                  onChange={handleChange}
+                                  onBlur={handleBlur}
+                                  id="customerName"
+                                />
+                                <ErrorMessage name="customerName" component="span" className="error" />
+                              </Form.Group>
+                            </Col>
+                          </Row>
+                          <Row>
+                            <Col>
+                              <Form.Group className="mt-3">
+                                <Label notify={true}>Project Name</Label>
+                                <Form.Control
+                                  type="name"
+                                  className="mt-1"
+                                  name="name"
+                                  value={values.name}
+                                  onChange={handleChange}
+                                  onBlur={handleBlur}
+                                  id="name"
+                                />
+                                <ErrorMessage name="name" component="span" className="error" />
+                              </Form.Group>
+                            </Col>
+                          </Row>
+                          <Row>
+                            <Col>
+                              <Form.Group className="mt-3">
+                                <Label notify={true}>Project Description</Label>
+                                <Form.Control
+                                  type="description"
+                                  name="description"
+                                  onChange={handleChange}
+                                  onBlur={handleBlur}
+                                  className="mt-1"
+                                  value={values.description}
+                                  id="description"
+                                  as="textarea"
+                                  rows={2}
+                                />
+                                <ErrorMessage name="description" component="span" className="error" />
+                              </Form.Group>
+                            </Col>
+                          </Row>
+                          <Row>
+                            <Col>
+                              <Form.Group className="mt-3">
+                                <Label notify={true}>Project Number</Label>
+                                <Form.Control
+                                  name="number"
+                                  id="number"
+                                  className="mt-1 w-100"
+                                  value={values.number}
+                                  onChange={handleChange}
+                                  onBlur={handleBlur}
+                                />
+                                <ErrorMessage name="number" component="span" className="error" />
+                              </Form.Group>
+                            </Col>
+                          </Row>
+                          <Row>
+                            <Col md={6}>
+                              <Form.Group className="mt-3">
+                                {" "}
+                                <Label notify={true}>Operational phase</Label>
+                                <Form.Control
+                                  type="text"
+                                  onChange={handleChange}
+                                  onBlur={handleBlur}
+                                  name="opreationalPhase"
+                                  id="opreationalPhase"
+                                  className="mt-1"
+                                  value={values.opreationalPhase}
+                                />
+                                <ErrorMessage name="opreationalPhase" component="span" className="error" />
+                              </Form.Group>
+                            </Col>
+                            <Col md={6}>
+                              <Form.Group className="mt-3">
+                                <Label notify={true}>Product life in years</Label>
+                                <Form.Control
+                                  type="number"
+                                  className="mt-1"
+                                  onChange={handleChange}
+                                  onBlur={handleBlur}
+                                  name="productlife"
+                                  id="productlife"
+                                  value={values.productlife}
+                                />
+                                <ErrorMessage name="productlife" component="span" className="error" />
+                              </Form.Group>
+                            </Col>
+                          </Row>
+                          <Row>
+                            <Col md={6}>
+                              <Form.Group className="mt-3">
+                                <Label notify={true}>Product life in km</Label>
+                                <Form.Control
+                                  type="number"
+                                  min="0"
+                                  step="any"
+                                  name="productlifekm"
+                                  id="productlifekm"
+                                  onChange={handleChange}
+                                  onBlur={handleBlur}
+                                  value={values.productlifekm}
+                                  className="mt-1"
+                                />
+                                <ErrorMessage name="productlifekm" component="span" className="error" />
+                              </Form.Group>
+                            </Col>
+                            <Col md={6}>
+                              <Form.Group className="mt-3">
+                                {" "}
+                                <Label notify={true}>Product life in miles</Label>
+                                <Form.Control
+                                  type="number"
+                                  min="0"
+                                  step="any"
+                                  onChange={handleChange}
+                                  onBlur={handleBlur}
+                                  className="mt-1"
+                                  value={values.pdtlifeinmiles}
+                                  name="pdtlifeinmiles"
+                                  id="pdtlifeinmiles"
+                                />
+                                <ErrorMessage name="pdtlifeinmiles" component="span" className="error" />
+                              </Form.Group>
+                            </Col>
+                          </Row>
+                          <Row>
+                            <Col md={6}>
+                              <Form.Group className="mt-3">
+                                <Label>Product life in operation cycles</Label>
+                                <Form.Control
+                                  name="pdtlifeoptncycle"
+                                  id="pdtlifeoptncycle"
+                                  type="number"
+                                  min="0"
+                                  step="any"
+                                  onChange={handleChange}
+                                  onBlur={handleBlur}
+                                  className="mt-1"
+                                  value={values.pdtlifeoptncycle}
+                                />
+                                <ErrorMessage name="pdtlifeoptncycle" component="span" className="error" />
+                              </Form.Group>
+                            </Col>
+                            <Col md={6}>
+                              {" "}
+                              <Form.Group className="mt-3">
+                                {" "}
+                                <Label notify={true}>Days of operation per year</Label>
+                                <Form.Control
+                                  type="number"
+                                  min="0"
+                                  step="any"
+                                  onChange={handleChange}
+                                  onBlur={handleBlur}
+                                  name="daysopration"
+                                  id="daysopration"
+                                  className="mt-1"
+                                  value={values.daysopration}
+                                />
+                                <ErrorMessage name="daysopration" component="span" className="error" />
+                              </Form.Group>
+                            </Col>
+                          </Row>
+                          <Row>
+                            <Col md={6}>
+                              <Form.Group className="mt-3">
+                                <Label notify={true}>Average operational hours per day</Label>
+                                <Form.Control
+                                  type="number"
+                                  min="0"
+                                  max="24"
+                                  step="any"
+                                  onChange={handleChange}
+                                  onBlur={handleBlur}
+                                  name="avgday"
+                                  className="mt-1"
+                                  id="avgday"
+                                  value={values.avgday}
+                                />
+                                <ErrorMessage name="avgday" component="span" className="error" />
+                              </Form.Group>
+                            </Col>
+                            <Col md={6}>
+                              <Form.Group className="mt-3">
+                                <Label>Average Power on hours per day</Label>
+                                <Form.Control
+                                  type="number"
+                                  min="0"
+                                  max="24"
+                                  step="any"
+                                  onChange={handleChange}
+                                  onBlur={handleBlur}
+                                  value={values.avgpoweronhrday}
+                                  className="mt-1"
+                                  name="avgpoweronhrday"
+                                  id="avgpoweronhrday"
+                                />
+                                <ErrorMessage name="avgpoweronhrday" component="span" className="error" />
+                              </Form.Group>
+                            </Col>
+                          </Row>
+                          <Row>
+                            <Col md={6}>
+                              <Form.Group className="mt-3">
+                                {" "}
+                                <Label notify={true}>Average cycles per operational hour</Label>
+                                <Form.Control
+                                  type="number"
+                                  min="0"
+                                  step="any"
+                                  onChange={handleChange}
+                                  onBlur={handleBlur}
+                                  value={values.avgcyclesperoperationnh}
+                                  className="mt-1"
+                                  name="avgcyclesperoperationnh"
+                                  id="avgcyclesperoperationnh"
+                                />
+                                <ErrorMessage name="avgcyclesperoperationnh" component="span" className="error" />
+                              </Form.Group>
+                            </Col>
+                            <Col md={6}>
+                              <Form.Group className="mt-3">
+                                <Label notify={true}>Average cycles per power on hour</Label>
+                                <Form.Control
+                                  type="number"
+                                  min="0"
+                                  step="any"
+                                  name="avgcycleperpoweronhr"
+                                  id="avgcycleperpoweronhr"
+                                  onChange={handleChange}
+                                  onBlur={handleBlur}
+                                  value={values.avgcycleperpoweronhr}
+                                  className="mt-1"
+                                />
+                                <ErrorMessage name="avgcycleperpoweronhr" component="span" className="error" />
+                              </Form.Group>
+                            </Col>
+                          </Row>
+                          <Row>
+                            <Col md={6}>
+                              <Form.Group className="mt-3">
+                                <Label notify={true}>Average annual operational hours</Label>
+                                <Form.Control
+                                  type="number"
+                                  min="0"
+                                  max="8784"
+                                  step="any"
+                                  onChange={handleChange}
+                                  onBlur={handleBlur}
+                                  name="avghour"
+                                  className="mt-1"
+                                  id="avghour"
+                                  value={values.avghour}
+                                />
+                                <ErrorMessage name="avghour" component="span" className="error" />
+                              </Form.Group>
+                            </Col>
+                            <Col md={6}>
+                              <Form.Group className="mt-3">
+                                {" "}
+                                <Label notify={true}>Average annual power on hours</Label>
+                                <Form.Control
+                                  type="number"
+                                  min="0"
+                                  max="8784"
+                                  step="any"
+                                  name="avgannualpweronhr"
+                                  id="avgannualpweronhr"
+                                  onChange={handleChange}
+                                  onBlur={handleBlur}
+                                  value={values.avgannualpweronhr}
+                                  className="mt-1"
+                                />
+                                <ErrorMessage name="avgannualpweronhr" component="span" className="error" />
+                              </Form.Group>
+                            </Col>
+                          </Row>{" "}
+                          <Row>
+                            <Col md={6}>
+                              <Form.Group className="mt-3">
+                                <Label notify={true}>Average annual mileage km</Label>
+                                <Form.Control
+                                  type="number"
+                                  min="0"
+                                  step="any"
+                                  onChange={handleChange}
+                                  onBlur={handleBlur}
+                                  className="mt-1"
+                                  value={values.avgannualmilekm}
+                                  name="avgannualmilekm"
+                                  id="avgannualmilekm"
+                                />
+                                <ErrorMessage name="avgannualmilekm" component="span" className="error" />
+                              </Form.Group>
+                            </Col>
+                            <Col md={6}>
+                              <Form.Group className="mt-3">
+                                {" "}
+                                <Label notify={true}>Average annual mileage miles</Label>
+                                <Form.Control
+                                  type="number"
+                                  min="0"
+                                  step="any"
+                                  name="avgannualmilegemile"
+                                  id="avgannualmilegemile"
+                                  onChange={handleChange}
+                                  onBlur={handleBlur}
+                                  value={values.avgannualmilegemile}
+                                  className="mt-1"
+                                />
+                                <ErrorMessage name="avgannualmilegemile" component="span" className="error" />
+                              </Form.Group>
+                            </Col>
+                          </Row>{" "}
+                          <Row>
+                            <Col md={6}>
+                              {" "}
+                              <Form.Group className="mt-3">
+                                <Label notify={true}>Average annual operation cycles</Label>
+                                <Form.Control
+                                  type="number"
+                                  min="0"
+                                  step="any"
+                                  className="mt-1"
+                                  onChange={handleChange}
+                                  onBlur={handleBlur}
+                                  value={values.avgannualoperationcycle}
+                                  name="avgannualoperationcycle"
+                                  id="avgannualoperationcycle"
+                                />
+                                <ErrorMessage name="avgannualoperationcycle" component="span" className="error" />
+                              </Form.Group>
+                            </Col>
+                            <Col md={6}>
+                              <Form.Group className="mt-3">
+                                <Label notify={true}>Average annual power on cycles</Label>
+                                <Form.Control
+                                  type="number"
+                                  min="0"
+                                  step="any"
+                                  name="avgannualpwroncycle"
+                                  id="avgannualpwroncycle"
+                                  onChange={handleChange}
+                                  onBlur={handleBlur}
+                                  value={values.avgannualpwroncycle}
+                                  className="mt-1"
+                                />
+                                <ErrorMessage name="avgannualpwroncycle" component="span" className="error" />
+                              </Form.Group>
+                            </Col>
+                          </Row>{" "}
+                          <Row>
+                            <Col md={6}>
+                              <Form.Group className="mt-3">
+                                <Label notify={true}>Average speed Km</Label>
+                                <Form.Control
+                                  type="number"
+                                  min="0"
+                                  step="any"
+                                  name="avgspeedkm"
+                                  className="mt-1"
+                                  onChange={handleChange}
+                                  onBlur={handleBlur}
+                                  value={values.avgspeedkm}
+                                  id="avgspeedkm"
+                                />
+                                <ErrorMessage name="avgspeedkm" component="span" className="error" />
+                              </Form.Group>
+                            </Col>
+                            <Col md={6}>
+                              <Form.Group className="mt-3">
+                                {" "}
+                                <Label notify={true}>Average speed miles</Label>
+                                <Form.Control
+                                  type="number"
+                                  min="0"
+                                  step="any"
+                                  name="avgspeedmiles"
+                                  id="avgspeedmiles"
+                                  onChange={handleChange}
+                                  onBlur={handleBlur}
+                                  value={values.avgspeedmiles}
+                                  className="mt-1"
+                                />
+                                <ErrorMessage name="avgspeedmiles" component="span" className="error" />
+                              </Form.Group>
+                            </Col>
+                          </Row>
+                          <Row>
+                            <Col md={6}>
+                              <Form.Group className="mt-3">
+                                <Label>FR target</Label>
+                                <Form.Control
+                                  type="text"
+                                  min="0"
+                                  step="any"
+                                  onChange={handleChange}
+                                  onBlur={handleBlur}
+                                  className="mt-1"
+                                  value={values.frtarget}
+                                  name="frtarget"
+                                  id="frtarget"
+                                />
+                                <ErrorMessage name="frtarget" component="span" className="error" />
+                              </Form.Group>
+                            </Col>
+                            <Col md={6}>
+                              <Form.Group className="mt-3">
+                                {" "}
+                                <Label>FR unit</Label>
+                                <Select
+                                  id="frunit"
+                                  styles={customStyles}
+                                  onChange={(event) => {
+                                    setFieldValue("frunit", event);
+                                  }}
+                                  onBlur={handleBlur}
+                                  name="frunit"
+                                  isDisabled={
+                                    permission?.write === true || permission?.write === "undefined" || role === "admin"
+                                      ? null
+                                      : "disabled"
+                                  }
+                                  value={values.frunit}
+                                  options={[
+                                    {
+                                      options: FrUnit.map((list) => ({
+                                        value: list.value,
+                                        label: list.label,
+                                      })),
+                                    },
+                                  ]}
+                                  className="mt-1"
+                                />
+                              </Form.Group>
+                            </Col>
+                          </Row>
+                          <Row>
+                            <Col md={6}>
+                              <Form.Group className="mt-3">
+                                <Label>Currency</Label>
+                                <Select
+                                  onChange={(e) => {
+                                    setFieldValue("currency", e);
+                                  }}
+                                  name="currency"
+                                  styles={customStyles}
+                                  isDisabled={
+                                    permission?.write === true || permission?.write === "undefined" || role === "admin"
+                                      ? null
+                                      : "disabled"
+                                  }
+                                  options={currecyvalue}
+                                  value={values.currency}
+                                  onBlur={handleBlur}
+                                  className="mt-1"
+                                  id="currency"
+                                />
+                              </Form.Group>
+                            </Col>
+                            <Col md={6}>
+                              <Form.Group className="mt-3">
+                                {" "}
+                                <Label>Prices validity</Label>
+                                <Form.Control
+                                  type="date"
+                                  name="pricesvalidity"
+                                  id="pricesvalidity"
+                                  onChange={handleChange}
+                                  onBlur={handleBlur}
+                                  value={values.pricesvalidity}
+                                  className="mt-1"
+                                />
+                              </Form.Group>
+                            </Col>
+                          </Row>
+                          <Row>
+                            <Col md={6}>
+                              <Form.Group className="mt-3">
+                                {" "}
+                                <Label>Delivery Terms</Label>
+                                <Form.Control
+                                  type="text"
+                                  onChange={handleChange}
+                                  onBlur={handleBlur}
+                                  value={values.deliveryterm}
+                                  className="mt-1"
+                                  name="deliveryterm"
+                                  id="deliveryterm"
+                                />
+                              </Form.Group>
+                            </Col>
+                            <Col md={6}>
+                              <Form.Group className="mt-3">
+                                {" "}
+                                <Label>Delivery Location</Label>
+                                <Form.Control
+                                  type="text"
+                                  name="deliverylocation"
+                                  id="deliverylocation"
+                                  onChange={handleChange}
+                                  onBlur={handleBlur}
+                                  value={values.deliverylocation}
+                                  className="mt-1"
+                                />
+                                <ErrorMessage name="deliverylocation" component="span" className="error" />
+                              </Form.Group>
+                            </Col>
+                          </Row>
+                          <Row>
+                            <Col md={6}>
+                              <Form.Group className="mt-3">
+                                <Label notify={true}>Environment</Label>
+                                <Select
+                                  type="select"
+                                  styles={customStyles}
+                                  isDisabled={
+                                    permission?.write === true || permission?.write === "undefined" || role === "admin"
+                                      ? null
+                                      : "disabled"
+                                  }
+                                  value={values.environment}
+                                  name="environment"
+                                  placeholder="Select Environment"
+                                  onChange={(e) => {
+                                    setFieldValue("environment", e);
+                                  }}
+                                  onBlur={handleBlur}
+                                  options={[
+                                    {
+                                      options: Environment.map((list) => ({
+                                        value: list.value,
+                                        label: list.label,
+                                      })),
+                                    },
+                                  ]}
+                                />
+                                <ErrorMessage name="environment" component="span" className="error" />
+                              </Form.Group>
+                            </Col>
+                            <Col md={6}>
+                              <Form.Group className="mt-3">
+                                <Label notify={true}>Temperature</Label>
+                                <Form.Control
+                                  type="number"
+                                  min="0"
+                                  step="any"
+                                  onChange={handleChange}
+                                  onBlur={handleBlur}
+                                  name="temp"
+                                  id="temp"
+                                  value={values.temp}
+                                  placeholder="°C"
+                                />
+                                <ErrorMessage name="temp" component="span" className="error" />
+                              </Form.Group>
+                            </Col>
+                          </Row>
+                          <Row>
+                            <Col>
+                              <Form.Group className="mt-3">
+                                <Label>Non Short Probability(NSP) </Label>
+                                <OverlayTrigger
+                                  placement="bottom"
+                                  overlay={
+                                    <Tooltip id="nsp-tooltip">
+                                      NSP value must be 1 when calculating the Calculated Spare Quantity
+                                    </Tooltip>
+                                  }
+                                >
+                                  <Form.Control
+                                    type="number"
+                                    id="nonShortProbability"
+                                    min="0"
+                                    step="any"
+                                    value={values.nonShortProbability}
+                                    onChange={handleChange}
+                                    onBlur={handleBlur}
+                                    placeholder="Non Short Probability(NSP)"
+                                    name="nonShortProbability"
+                                  />
+                                </OverlayTrigger>
+                              </Form.Group>
+                            </Col>
+                            <Col>
+                              <Form.Group className="mt-3">
+                                <Label>&#934; for Mmax</Label>
+                                <Form.Control
+                                  type="number"
+                                  step="any"
+                                  value={values.mMaxValue}
+                                  onChange={handleChange}
+                                  onBlur={handleBlur}
+                                  placeholder="phi for mMax"
+                                  name="mMaxValue"
+                                />
+                              </Form.Group>
+                            </Col>
+                          </Row>
+                        </div>
+                      </div>
+                    </Card>
+                    <Form.Group className="my-4 d-flex justify-content-end ">
+                      <Row style={{ marginBottom: "50px" }}>
+                        <Col></Col>
+                        <Col className="add-project-button ">
+                          <Button
+                            className="delete-cancel-btn me-2"
+                            variant="outline-secondary"
+                            onClick={history.goBack}
+                            // CHANGED: also disable Cancel while saving to prevent navigation mid-request
+                            disabled={isSaving}
+                          >
+                            CANCEL
+                          </Button>
+                          {/* CHANGED: button is disabled when form is pristine OR a save is in-flight */}
+                          <Button
+                            className="save-btn"
+                            type="submit"
+                            disabled={!dirty || isSaving}
+                          >
+                            {/* CHANGED: show spinner + updated label while saving */}
+                            {isSaving ? (
+                              <>
+                                <Spinner
+                                  as="span"
+                                  animation="border"
+                                  size="sm"
+                                  role="status"
+                                  aria-hidden="true"
+                                  className="me-2"
+                                />
+                                SAVING...
+                              </>
+                            ) : (
+                              "SAVE CHANGES"
+                            )}
+                          </Button>
+                        </Col>
+                      </Row>
+                    </Form.Group>
+                  </fieldset>
+                </Form>
+
+                <div>
+                  <Modal show={show} centered>
+                    <div className="d-flex justify-content-center mt-5">
+                      {status === 201 ? (
+                        <FontAwesomeIcon icon={faCircleCheck} fontSize={"40px"} color="#1D5460" />
+                      ) : (
+                        <FaExclamationCircle size={45} color="#de2222b0" />
+                      )}
+                    </div>
+                    <Modal.Footer className=" d-flex justify-content-center success-message mt-3 mb-4">
+                      <div>
+                        <h4 className="text-center">{statusMessage}</h4>
+                      </div>
+                    </Modal.Footer>
+                  </Modal>
+                </div>
+              </div>
+            );
+          }}
+        </Formik>
+      ) : (
+        <div className="mx-4" style={{ marginTop: "90px" }}>
+          <Card>
+            <Card.Body>
+              <Card.Title className="text-center">Access Denied</Card.Title>
+              <Card.Text>
+                <p className="text-center">
+                  You dont have permission to view this project
+                  <br />
+                  Contact admin to get permission or go back to project list page
+                </p>
+              </Card.Text>
+              <Button variant="primary" className="save-btn fw-bold pbs-button-1" onClick={history.goBack}>
+                Go Back
+              </Button>
+            </Card.Body>
+          </Card>
+        </div>
+      )}
+    </div>
+  );
+}

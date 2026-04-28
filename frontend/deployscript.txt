@@ -1,0 +1,19 @@
+npm install -g heroku
+
+heroku --version
+
+heroku login -i
+
+heroku login 
+
+//react
+heroku git:remote -a rams360techdev   
+
+git push heroku main
+
+
+//ssl enabling
+
+heroku certs:auto:enable
+heroku certs:auto
+

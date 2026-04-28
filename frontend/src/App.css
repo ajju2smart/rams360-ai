@@ -1,0 +1,347 @@
+:root {
+  --background-color: hsl(0, 0%, 100%);
+  --primary-color: oklch(45.12% 0.267 var(--user-theme-color-hue));
+  --secondary-color: oklch(94.45% 0.03 268.81);
+  --success-color:oklch(70% 0.099 197.36);
+}
+:body {
+    background-color: var(--primary-color);
+      color: var(--secondary-color);
+}
+.form-control {
+  border: 1px solid black !important;
+  /* border-radius: 0% !important; */
+  font-size: 14px !important;
+  padding: 0.45rem 0.75rem !important;
+}
+.css-1s2u09g-control {
+  border-color: black !important;
+}
+* {
+  font-family: Arial, Helvetica, sans-serif;
+}
+.para-tag {
+  font-family: Arial, Helvetica, sans-serif;
+  font-size: large;
+  padding: 13px;
+  color: white;
+}
+
+@media screen and (max-width: 521px) {
+  .para-tag {
+    font-size: small;
+  }
+}
+.projectName {
+  margin-left: 14%;
+}
+.pmmra-general {
+  width: 98% !important;
+  margin-left: 1%;
+}
+.pbs-margin {
+  margin-bottom: 10%;
+}
+.divider-color {
+  color: white;
+  width: 100%;
+  height: 2px !important;
+}
+.mttr-sec {
+    background-color: var(--primary-color) !important;
+      color: var(--secondary-color) !important;border-radius: 5px;
+      border-radius: 5px;
+}
+.add-project-form {
+  display: flex;
+  flex-direction: row;
+}
+.add-project-control {
+  display: flex;
+  justify-content: flex-start;
+  width: 50%;
+}
+.add-project-label {
+  display: flex;
+  justify-content: center;
+}
+.FRP-button {
+  /* background-color: #1d5460 !important;
+  border: #1d5460 !important; */
+  background-color: var(--primary-color) !important;
+    color: var(--secondary-color) !important;
+    border-radius: 5px;
+    width: 200px;
+}
+.FRP-button::after {
+  border: #1d5460 !important;
+}
+
+.save-btn {
+  min-width: 175px;
+    background-color: var(--primary-color) !important;
+      color: white !important;
+  font-weight: 500;
+  border-radius: 3px;
+}
+.yese-btn {
+  min-width: 75px !important;
+  background-color: var(--primary-color) !important;
+  color: white !important;
+  font-weight: 500;
+  border-radius: 3px;
+}
+
+/* .export-btns {
+  min-width: 100px;
+  background-color: var(--primary-color) !important;
+  color: white !important;
+  font-weight: 500;
+  border-radius: 3px;
+} */
+   /* margin-left: 410px !important  */
+  
+
+/* .export-btns-pmmra {
+  min-width: 100px;
+  background-color: var(--primary-color) !important;
+  color: white !important;
+  font-weight: 500;
+  border-radius: 3px;
+  margin-left: 520px !important;
+
+} */
+
+/* .export-btns-spareparts {
+  min-width: 50px !important;
+  max-width: 100px !important;
+  background-color: var(--primary-color) !important;
+  color: white !important;
+  font-weight: 500;
+  border-radius: 3px;
+  margin-bottom: 40px;
+  margin-left: 850px !important;
+} */
+
+
+
+
+/* .import-btns-FailureRate{
+  background-color: var(--primary-color) !important;
+    color: white !important;
+    font-weight: 500;
+    border-radius: 3px;
+    margin-top: 10px;
+} */
+
+
+.export-btns-FailureRate {
+
+  max-width: 100px !important; 
+  min-width: 100px ! important;
+  background-color: var(--primary-color) !important;
+  color: white !important;
+  font-weight: 500;
+  border-radius: 3px;
+  margin-top: 10px;
+  align-items: flex-end;
+  justify-content:flex-end;
+  margin-left:395px;
+    
+}
+ .input-fields {
+   position: relative;
+   opacity: 0;
+   z-index: 2;
+   cursor: pointer;
+   height: 46px;
+ }
+
+
+ .file-inputs {
+   position: relative;
+   margin-bottom: 1.5em;
+   background-color: var(--primary-color) !important;
+   color: white !important;
+   color: white;
+   width: 100px;
+   height: 40px;
+   padding-left: 25px;
+   border-radius: 10px;
+   padding-top: 8px;
+   margin-top: 10px;
+
+ }
+
+/* .import-btns-mttr{
+  min-width: 90px !important;
+    max-width: 100px !important;
+    color: white !important;
+      font-weight: 500;
+      border-radius: 3px;
+} */
+
+
+
+
+
+/* .import-align
+{
+align-items: flex-end;
+justify-content: flex-end;
+} */
+
+
+
+.btn-primary::after {
+  color: #fff;
+  border-color: none;
+  box-shadow: none;
+}
+@media (min-width: 767px) and (max-width: 899px) {
+  .dropdown-Alignments {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+}
+.FRP-button:hover {
+  background-color: #fff;
+  color: black;
+}
+.succes-button {
+  width: 100px;
+}
+@media screen and (max-width: 478px) {
+  .low-length-responsive {
+    width: fit-content;
+  }
+}
+.card-color {
+  background-color: #f2f1f2 !important;
+}
+.project-name {
+  color: #1d5460;
+}
+.project-permission-select {
+  width: 45%;
+}
+.css-319lph-ValueContainer {
+  font-size: 14px !important;
+}
+
+/* Chrome, Safari, Edge, Opera */
+input::-webkit-outer-spin-button,
+input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+/* Firefox */
+input[type="number"] {
+  -moz-appearance: textfield;
+}
+
+.org-chart-container {
+  width: 100%;
+  height: 100vh;
+  cursor: grab;
+  /* overflow: hidden; */
+}
+.separate {
+  margin-top: 100px;
+ 
+}
+.good {
+  width: 40%;
+  height: 30px;
+}
+.edit{
+  margin-top: 10px;
+  margin-left: 81%;
+}
+.cancel {
+  width: 8%;
+  margin-right: 10px;
+ background-color: #CCE6FF;
+}
+.terminal:hover{
+  transform: scale(1.1);
+  transition:0.2s all ease-in-out;
+}
+.canceled {
+  width: 80px;
+}
+.saved {
+  width: 80px;
+  /* background-color:  #1d5460; */
+}
+.colors {
+  background-color: #1d5460;
+  color: white;
+  margin: 15px;
+  font-size: 15px;
+}
+.icon-btn {
+  font-size: 20px;
+  color: #1d5460;
+}
+.coloring {
+  color: rgb(134, 15, 15);
+  font-size: 20px;
+}
+.report {
+  display: flex;
+  justify-content: center;
+}
+
+.college {
+  color: #1d5460;
+}
+.setup {
+ font-size: bold;
+}
+.readonly {
+  background-color: #dddddd;
+}
+/* hide-underline */
+.hide-line {
+  text-decoration: none !important;
+}
+/* seprated-library */
+.connected {
+  margin-top: 100px;
+}
+.good {
+  width: 30%;
+  height: 30px;
+}
+
+
+/* Hide ALL connector lines in organizational chart */
+.react-organizational-chart svg {
+  display: none !important;
+}
+
+/* Hide ALL SVG connectors */
+.org-chart-container svg {
+  display: none !important;
+}
+
+/* Hide line elements specifically */
+.react-organizational-chart line,
+.react-organizational-chart path {
+  display: none !important;
+  stroke: transparent !important;
+  stroke-width: 0 !important;
+}
+
+/* Hide the connector lines between nodes */
+.react-organizational-chart .oc-line {
+  display: none !important;
+}
+
+/* Hide connector elements */
+[class*="react-organizational-chart"] [class*="line"] {
+  display: none !important;
+}

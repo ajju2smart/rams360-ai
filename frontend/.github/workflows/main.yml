@@ -1,0 +1,37 @@
+name: Deploy to Heroku (rams360techdev)
+
+on:
+  push:
+    branches: [ main ]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Configure Heroku git credentials
+        env:
+          HEROKU_API_KEY: ${{ secrets.HEROKU_API_KEY }}
+        run: |
+          set -euo pipefail
+          cat > ~/.netrc <<EOF
+          machine git.heroku.com
+            login heroku
+            password ${HEROKU_API_KEY}
+          machine api.heroku.com
+            login heroku
+            password ${HEROKU_API_KEY}
+          EOF
+          chmod 600 ~/.netrc
+
+      - name: Add Heroku remote
+        run: |
+          set -euo pipefail
+          git remote remove heroku 2>/dev/null || true
+          git remote add heroku https://git.heroku.com/rams360techdev.git
+
+      - name: Push to Heroku
+        run: |
+          set -euo pipefail
+          git push heroku HEAD:main --force

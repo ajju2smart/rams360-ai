@@ -1,0 +1,5 @@
+//pull from aviar if needed
+mongodump --uri="mongodb+srv://relisafe-client:momYX0a2cjSGKbnC@cluster0.bu3xd.mongodb.net/relisafe-dev" --out=./backup
+
+//push from local backup to rams db
+mongorestore --uri="mongodb+srv://rams360dev:KgNur6pmBkWJcIjJ@rams360.rgpxhem.mongodb.net/rams360" --dir=".\backup\relisafe-dev" --drop
