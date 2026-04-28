@@ -1,0 +1,549 @@
+/* ═══════════════════════════════════════════════════
+   PBS – Fully Fixed & Redesigned Stylesheet
+   Fixes: z-index overlaps, scroll, row overflow, tooltip layering
+═══════════════════════════════════════════════════ */
+
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=DM+Mono:wght@400;500&display=swap');
+
+:root {
+  --pbs-primary:      #007880;
+  --pbs-primary-dark: #007880;
+  --pbs-primary-light:#e6f4f3;
+  --pbs-accent:       #f0f9ff;
+  --pbs-border:       #e2e8f0;
+  --pbs-row-hover:    rgba(0, 121, 116, 0.06);
+  --pbs-row-odd:      #fafbfd;
+  --pbs-shadow:       0 2px 16px rgba(0,0,0,0.08);
+  --pbs-radius:       10px;
+  --pbs-header-bg:    #dff1f0;
+  --pbs-font:         'DM Sans', sans-serif;
+  --pbs-mono:         'DM Mono', monospace;
+
+  /* Z-index scale – prevents ALL overlap issues */
+  --z-row:         1;
+  --z-header:      10;
+  --z-sticky:      20;
+  --z-toolbar:     30;
+  --z-dropdown:    1050;  /* Above everything in table */
+  --z-tooltip:     1060;
+  --z-modal:       1055;
+  --z-modal-back:  1050;
+}
+
+/* ── Base ────────────────────────────────────────── */
+.pbs-main {
+  margin-top: 50px;
+  min-height: 100vh;
+  font-family: var(--pbs-font);
+  overflow-x: visible; /* Never clip toolbar or dropdown children */
+
+  @media (max-width: 768px) { margin-top: 70px; padding-inline: 12px !important; }
+  @media (max-width: 425px) { margin-top: 60px; }
+}
+
+/* ── Sticky header ──────────────────────────────── */
+.pbs-sticky-header {
+  position: sticky;
+  top: 0;
+  z-index: var(--z-sticky);
+  background: #fff;
+  padding-block: 4px;
+  box-shadow: 0 1px 0 var(--pbs-border);
+  margin-bottom: 10px;
+}
+
+/* ── Stats bar ──────────────────────────────────── */
+.pbs-stats-bar {
+  display: flex;
+  gap: 20px;
+  flex-wrap: wrap;
+  align-items: center;
+  margin-bottom: 10px;
+  padding: 8px 16px;
+  background: linear-gradient(135deg, var(--pbs-primary-light) 0%, #f0faf9 100%);
+  border-radius: var(--pbs-radius);
+  border: 1px solid #b2dbd9;
+  font-size: 12.5px;
+  color: #4a5568;
+  font-family: var(--pbs-font);
+
+  .pbs-stat strong {
+    color: var(--pbs-primary);
+    font-weight: 700;
+  }
+
+  .pbs-stat-search {
+    color: #7c3aed;
+    font-style: italic;
+    background: rgba(124,58,237,0.07);
+    padding: 2px 8px;
+    border-radius: 12px;
+  }
+}
+
+/* ── Toolbar ────────────────────────────────────── */
+.pbs-toolbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 14px;
+  flex-wrap: nowrap; /* Prevent wrapping that causes cut-off */
+  /* Toolbar must sit above the table */
+  position: relative;
+  z-index: var(--z-toolbar);
+  width: 100%;
+  box-sizing: border-box;
+  overflow: visible; /* Never clip the New Product button */
+}
+
+.pbs-toolbar-left {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.pbs-search-input {
+  width: 300px;
+  height: 36px;
+  border-radius: 8px !important;
+  border: 1.5px solid var(--pbs-border) !important;
+  font-family: var(--pbs-font) !important;
+  font-size: 13px !important;
+  transition: border-color 0.15s, box-shadow 0.15s;
+
+  &:focus {
+    border-color: var(--pbs-primary) !important;
+    box-shadow: 0 0 0 3px rgba(0, 121, 116, 0.15) !important;
+  }
+
+  @media (max-width: 600px) { width: 100%; }
+}
+
+/* ── Buttons ────────────────────────────────────── */
+.add-product-btn {
+  width: auto;
+  min-width: 36px;
+  height: 36px;
+  padding-inline: 12px;
+  background-color: var(--pbs-primary) !important;
+  color: white !important;
+  font-weight: 600;
+  font-family: var(--pbs-font) !important;
+  border-radius: 8px !important;
+  border: none !important;
+  display: inline-flex;
+  justify-content: center;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+  transition: background-color 0.15s, transform 0.1s, box-shadow 0.15s;
+  white-space: nowrap;
+  font-size: 13px;
+  position: relative;
+  z-index: var(--z-toolbar);
+  flex-shrink: 0; /* Never shrink/disappear on narrow viewports */
+
+  &:hover:not(:disabled) {
+    background-color: var(--pbs-primary-dark) !important;
+    box-shadow: 0 4px 12px rgba(0, 121, 116, 0.25);
+  }
+  &:active:not(:disabled) { transform: scale(0.97); }
+  &.disabled, &:disabled { opacity: 0.55; cursor: not-allowed; }
+}
+
+/* ── Table card wrapper ─────────────────────────── */
+.pbs-table-card {
+  border-radius: var(--pbs-radius);
+  border: 1px solid var(--pbs-border);
+  box-shadow: var(--pbs-shadow);
+  background: #fff;
+  margin-bottom: 32px;
+  /* overflow:visible so dropdowns escape – border-radius still works on block elements */
+  overflow: visible;
+}
+
+.pbs-table-title {
+  padding: 13px 18px;
+  background: var(--pbs-header-bg);
+  font-weight: 700;
+  font-size: 13.5px;
+  color: #1a365d;
+  border-bottom: 1px solid var(--pbs-border);
+  border-radius: var(--pbs-radius) var(--pbs-radius) 0 0;
+  font-family: var(--pbs-font);
+  letter-spacing: 0.01em;
+}
+
+/* ═══════════════════════════════════════════════════
+   VIRTUAL TABLE — real <table> with table-layout:auto
+   Columns size themselves to content.
+   Overflow on both axes → scrollbars appear when needed.
+═══════════════════════════════════════════════════ */
+
+.vt-wrapper {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  position: relative;
+}
+
+/* ── Scroll container ───────────────────────────── */
+.vt-scroll-outer {
+  overflow-x: auto;   /* Horizontal scroll when table wider than viewport */
+  overflow-y: auto;   /* Vertical scroll when many rows */
+  height: calc(100vh - 380px);
+  min-height: 300px;
+  max-height: calc(100vh - 280px);
+  border-radius: 0 0 var(--pbs-radius) var(--pbs-radius);
+  scrollbar-width: thin;
+  scrollbar-color: #b2dbd9 transparent;
+  -webkit-overflow-scrolling: touch;
+
+  &::-webkit-scrollbar       { width: 7px; height: 7px; }
+  &::-webkit-scrollbar-track { background: transparent; }
+  &::-webkit-scrollbar-thumb { background: #b2dbd9; border-radius: 4px; }
+  &::-webkit-scrollbar-corner { background: var(--pbs-accent); }
+}
+
+/* ── Table ──────────────────────────────────────── */
+.vt-table {
+  /*
+    table-layout: auto = browser measures every cell's content
+    and assigns column widths accordingly. No fixed widths needed.
+    Columns are exactly as wide as their widest content.
+  */
+  table-layout: auto;
+  width: 100%;         /* Fill container; grows wider if content demands it */
+  min-width: 100%;
+  border-collapse: collapse;
+  font-family: var(--pbs-font);
+  font-size: 13px;
+}
+
+/* ── Header ─────────────────────────────────────── */
+.vt-thead {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+.vt-th {
+  background: var(--pbs-header-bg);
+  border-bottom: 2px solid #b2dbd9;
+  border-right: 1px solid rgba(0,0,0,0.06);
+  padding: 10px 14px;
+  font-size: 11px;
+  font-weight: 700;
+  color: #2d4a5a;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  white-space: nowrap;     /* Header labels never wrap */
+  text-align: left;
+  user-select: none;
+
+  &:last-child { border-right: none; }
+}
+
+.vt-th-actions {
+  text-align: center;
+  width: 52px;             /* Only this one gets a narrow fixed width */
+  min-width: 52px;
+}
+
+/* ── Body rows ──────────────────────────────────── */
+.vt-row {
+  border-bottom: 1px solid var(--pbs-border);
+  cursor: pointer;
+  transition: background 0.1s;
+
+  &:nth-child(even) { background: var(--pbs-row-odd); }
+  &:hover           { background: var(--pbs-row-hover); }
+
+  &.vt-row-selected {
+    background: var(--pbs-primary-light) !important;
+    box-shadow: inset 3px 0 0 var(--pbs-primary);
+  }
+}
+
+/* ── Data cells ─────────────────────────────────── */
+.vt-td {
+  padding: 0 14px;
+  height: 44px;            /* Fixed row height for virtual scroll */
+  vertical-align: middle;
+  border-right: 1px solid rgba(0,0,0,0.04);
+  color: #2d3748;
+  max-width: 320px;        /* Soft cap — long text columns won't go infinite */
+
+  &:last-child { border-right: none; }
+}
+
+/* Inner wrapper clips text to cell width */
+.vt-td-inner {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 100%;
+  display: flex;
+  align-items: center;
+}
+
+.vt-td-actions {
+  text-align: center;
+  width: 52px;
+  min-width: 52px;
+  padding: 0 6px;
+  overflow: visible !important; /* Dropdown must escape */
+  position: relative;
+}
+
+/* Dropdown inside actions cell */
+.vt-td-actions .dropdown-menu {
+  z-index: 9999 !important;
+  position: fixed !important;
+  box-shadow: 0 8px 28px rgba(0,0,0,0.16), 0 2px 8px rgba(0,0,0,0.08);
+  border: 1px solid var(--pbs-border);
+  border-radius: 8px;
+  font-size: 13px;
+  font-family: var(--pbs-font);
+  min-width: 172px;
+  padding: 4px;
+
+  .dropdown-item {
+    border-radius: 6px;
+    padding: 8px 14px;
+    font-size: 13px;
+    color: #2d3748;
+    transition: background 0.1s;
+
+    &:hover { background: var(--pbs-primary-light); color: var(--pbs-primary); }
+    &.text-danger { color: #e53e3e !important; &:hover { background: #fff5f5; } }
+    &:disabled, &.disabled { opacity: 0.4; cursor: not-allowed; }
+  }
+
+  .dropdown-divider { margin: 3px 6px; border-color: var(--pbs-border); }
+}
+
+/* ── Misc ───────────────────────────────────────── */
+.vt-dash { color: #c0cad4; }
+
+.vt-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 160px;
+  color: #a0aec0;
+  font-size: 14px;
+  gap: 10px;
+  svg { opacity: 0.25; }
+}
+
+/* Expand button */
+.vt-expand-btn {
+  border: 1px solid #cdd8e0;
+  background: #fff;
+  border-radius: 4px;
+  width: 20px;
+  height: 20px;
+  min-width: 20px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  margin-right: 6px;
+  flex-shrink: 0;
+  color: #4a5568;
+  padding: 0;
+  transition: background 0.1s, border-color 0.1s;
+
+  &:hover { background: var(--pbs-primary-light); border-color: var(--pbs-primary); color: var(--pbs-primary); }
+  &:focus-visible { outline: 2px solid var(--pbs-primary); outline-offset: 1px; }
+}
+
+.vt-sitemap-icon {
+  opacity: 0.4;
+  margin-right: 5px;
+  flex-shrink: 0;
+  color: var(--pbs-primary);
+}
+
+.vt-index {
+  font-weight: 700;
+  font-size: 12px;
+  color: var(--pbs-primary);
+  font-family: var(--pbs-mono);
+  white-space: nowrap;
+}
+
+/* Action toggle button */
+.vt-action-toggle {
+  width: 30px;
+  height: 30px;
+  border-radius: 6px;
+  border: 1px solid transparent;
+  background: transparent;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: #718096;
+  font-size: 13px;
+  padding: 0;
+  margin: 0 auto;
+  transition: background 0.12s, border-color 0.12s, color 0.12s;
+
+  &:hover {
+    background: var(--pbs-primary-light);
+    border-color: #b2dbd9;
+    color: var(--pbs-primary);
+  }
+  &::after { display: none !important; } /* Hide Bootstrap caret */
+}
+
+/* ── Pagination ─────────────────────────────────── */
+.vt-pagination {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 16px;
+  padding: 10px 14px;
+  border-top: 1px solid var(--pbs-border);
+  background: var(--pbs-accent);
+  font-size: 12.5px;
+  flex-wrap: wrap;
+  border-radius: 0 0 var(--pbs-radius) var(--pbs-radius);
+  font-family: var(--pbs-font);
+}
+
+.vt-page-info {
+  color: #4a5568;
+  margin-right: auto;
+}
+
+.vt-page-size-select {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: #4a5568;
+
+  select {
+    border: 1px solid var(--pbs-border);
+    border-radius: 6px;
+    padding: 3px 6px;
+    font-size: 12.5px;
+    font-family: var(--pbs-font);
+    cursor: pointer;
+    background: #fff;
+    color: #2d3748;
+    &:focus { outline: none; border-color: var(--pbs-primary); }
+  }
+}
+
+.vt-page-btns {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+
+  button {
+    border: 1px solid var(--pbs-border);
+    background: #fff;
+    border-radius: 6px;
+    width: 30px;
+    height: 30px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    font-size: 15px;
+    color: #4a5568;
+    padding: 0;
+    transition: background 0.1s, border-color 0.1s, color 0.1s;
+
+    &:hover:not(:disabled) {
+      background: var(--pbs-primary-light);
+      border-color: #b2dbd9;
+      color: var(--pbs-primary);
+    }
+    &:disabled { opacity: 0.35; cursor: not-allowed; }
+  }
+}
+
+.vt-page-num {
+  padding-inline: 10px;
+  font-size: 12.5px;
+  color: #4a5568;
+  min-width: 64px;
+  text-align: center;
+  background: #fff;
+  border: 1px solid var(--pbs-border);
+  border-radius: 6px;
+  height: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Responsive */
+@media (max-width: 600px) {
+  .vt-scroll-outer { height: calc(100vh - 320px); min-height: 260px; }
+  .vt-pagination { justify-content: center; .vt-page-info { display: none; } }
+}
+
+/* ═══════════════════════════════════════════════════
+   Modals
+═══════════════════════════════════════════════════ */
+.pbs-section-label {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: #718096;
+  margin-bottom: 8px;
+  font-family: var(--pbs-font);
+}
+
+.pbs-modal-card {
+  border-radius: 8px !important;
+  border: 1px solid var(--pbs-border) !important;
+  background: #f8fafc !important;
+}
+
+.no-vertical-scroll .modal-body {
+  overflow-y: auto !important;
+  max-height: 70vh;
+}
+
+/* Modal z-index override so it sits above dropdowns */
+.modal { z-index: var(--z-modal) !important; }
+.modal-backdrop { z-index: var(--z-modal-back) !important; }
+
+/* ── Save / cancel buttons ──────────────────────── */
+.save-btn {
+  background-color: var(--pbs-primary) !important;
+  border-color: var(--pbs-primary) !important;
+  font-weight: 600;
+  font-family: var(--pbs-font) !important;
+  border-radius: 8px !important;
+  transition: background-color 0.15s, box-shadow 0.15s;
+
+  &:hover:not(:disabled) {
+    background-color: var(--pbs-primary-dark) !important;
+    box-shadow: 0 4px 12px rgba(0, 121, 116, 0.25);
+  }
+}
+
+/* ── MUI Tooltip z-index fix ────────────────────── */
+.MuiTooltip-popper {
+  z-index: var(--z-tooltip) !important;
+}
+
+/* ── Responsive ─────────────────────────────────── */
+@media (max-width: 600px) {
+  .vt-scroll-outer { height: calc(100vh - 320px); min-height: 260px; }
+  .vt-pagination { justify-content: center; .vt-page-info { display: none; } }
+  .pbs-toolbar { flex-direction: column; align-items: stretch; }
+  .pbs-toolbar-left { flex-wrap: wrap; }
+  .vt-head, .vt-cell { font-size: 12px; padding: 0 6px; }
+}

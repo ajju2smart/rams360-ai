@@ -1,0 +1,22 @@
+.d-tree-container {
+  list-style: none;
+  padding: 0;
+}
+
+.d-tree-node {
+  padding: 0.5rem 1rem;
+}
+
+.d-tree-toggler.active {
+  transform: rotate(45deg);
+}
+.expand {
+  width: 86px;
+}
+/* .css-1g86id8-MuiTreeItem-content .MuiTreeItem-iconContainer:nth-last-child(1) {
+  display: none;
+} */
+
+/* .css-1g86id8-MuiTreeItem-content.Mui-selected:nth-last-child(1) {
+    background-color: red;
+} */
