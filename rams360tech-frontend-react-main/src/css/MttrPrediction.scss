@@ -14,6 +14,12 @@
 .frp-main {
   position: relative;
 }
+
+// ── Override global user-workspace-container padding for the dense MTTR module.
+// Global sets 20px 24px which wastes vertical viewport on a data-heavy page.
+.user-workspace-container.frp-main {
+  padding: 12px 16px;
+}
 .project-name-header {
   margin-left: 30%;
 }
@@ -43,7 +49,7 @@
 /* Content Area */
 .classical-group {
   padding: 1rem 1rem; /* Top/bottom: 2rem, Left/right: 3rem */
-  background: #F8F9FA;
+  background: var(--color-surface-raised);
   border-radius: 8px;
   margin: 2rem;
 }
@@ -58,15 +64,15 @@
   display: block;
   margin-bottom: 0.5rem;
   font-weight: 500;
-  color: #333;
+  color: var(--color-text);
 }
 
 /* Title Styling */
 .classical-group h2 {
-  color: #1D5460;
+  color: var(--color-brand);
   margin-bottom: 1.5rem;
   padding-bottom: 0.5rem;
-  border-bottom: 2px solid #1D5460;
+  border-bottom: 2px solid var(--color-brand);
 }
 
 /* Responsive Adjustments */
@@ -107,35 +113,35 @@
   }
 }
 .close-btn {
-  background-color: #1d5460;
-  border: #1d5460;
+  background-color: var(--color-brand);
+  border: var(--color-brand);
   width: 10%;
 }
 .close-btn:hover {
-  background-color: #0c4c5a;
-  border: #1d5460;
+  background-color: var(--color-brand-dark);
+  border: var(--color-brand);
   opacity: 0.8;
 }
 .close-btn::after {
-  background-color: #0c4c5a;
-  border: #1d5460;
+  background-color: var(--color-brand-dark);
+  border: var(--color-brand);
 }
 .close-btn:disabled {
-  background-color: #0c4c5a;
-  border: #1d5460;
+  background-color: var(--color-brand-dark);
+  border: var(--color-brand);
 }
 .close-btn:active {
-  background-color: #0c4c5a;
-  border: #1d5460;
+  background-color: var(--color-brand-dark);
+  border: var(--color-brand);
 }
 .close-btn:focus {
-  background-color: #0c4c5a;
-  border: #1d5460;
+  background-color: var(--color-brand-dark);
+  border: var(--color-brand);
 }
 .save-changes {
   // width: 100%;
-  background-color: 1px #1d5460;
-  border: #1d5460;
+  background-color: 1px var(--color-brand);
+  border: var(--color-brand);
 }
 .part-type-aln {
   margin-top: 2.5%;
@@ -146,25 +152,25 @@
   font-size: smaller;
 }
 .save-changes:hover {
-  background-color: #0c4c5a;
-  border: #1d5460;
+  background-color: var(--color-brand-dark);
+  border: var(--color-brand);
   opacity: 0.8;
 }
 .save-changes::after {
-  background-color: #0c4c5a;
-  border: #1d5460;
+  background-color: var(--color-brand-dark);
+  border: var(--color-brand);
 }
 .save-changes:disabled {
-  background-color: #0c4c5a;
-  border: #1d5460;
+  background-color: var(--color-brand-dark);
+  border: var(--color-brand);
 }
 .save-changes:active {
-  background-color: #0c4c5a;
-  border: #1d5460;
+  background-color: var(--color-brand-dark);
+  border: var(--color-brand);
 }
 .save-changes:focus {
-  background-color: #0c4c5a;
-  border: #1d5460;
+  background-color: var(--color-brand-dark);
+  border: var(--color-brand);
 }
 
 .mttr-alert {
@@ -174,19 +180,19 @@
   width: 150px;
 }
 .procedure {
-  color: #f2f1f2;
+  color: var(--color-surface);
 }
 
 .procedure:hover {
-  color: #f2f1f2;
+  color: var(--color-surface);
 }
 .mttr-sec {
-  background-color: #1d5460;
+  background-color: var(--color-brand);
   border-radius: 5px;
   //    margin: 10px;
 }
 .mttr-sec1 {
-  background-color: #1d5460;
+  background-color: var(--color-brand);
   border-radius: 5px;
   text-align: center
   //    margin: 10px;
@@ -197,7 +203,7 @@
   height: auto;
   margin: 10px 0px;
   border-radius: 5px;
-  background-color: #f2f1f2;
+  background-color: var(--color-surface);
   padding: auto;
   
   
@@ -223,7 +229,7 @@
   width: 850px;
   margin: 10px;
   border-radius: 5px;
-  background-color: #f2f1f2;
+  background-color: var(--color-surface);
 }
 
 .form-cont {
@@ -269,8 +275,8 @@
   }
 }
 .btn-mttr {
-  background-color: #238d9d;
-  color: #f2f1f2;
+  background-color: var(--color-brand-light);
+  color: var(--color-surface);
   margin: 10px;
   border: none;
   width: 50%;
@@ -280,8 +286,8 @@
   }
 }
 .btn-mttr:hover {
-  background-color: #176f7c;
-  color: #f2f1f2;
+  background-color: var(--color-brand-dark);
+  color: var(--color-surface);
 }
 .save-btn-div {
   display: flex;
@@ -298,7 +304,7 @@
 .btn-save {
   width: 18%;
   font-weight: bold;
-  background-color: #1d5460;
+  background-color: var(--color-brand);
   border: none;
   @media only screen and (min-width: 320px) and (max-width: 768px) {
     width: auto;
@@ -306,7 +312,7 @@
   }
 }
 .btn-save:hover {
-  background-color: #9c6b09;
+  background-color: var(--color-warning);
   border: none;
 }
 .spinner {
@@ -322,7 +328,7 @@
 .btn-cancel{
     width:18%;
     font-weight: bold;
-    background-color: #398935;
+    background-color: var(--color-success);
     border: none;
     @media only screen and (min-width:320px) and (max-width:768px){
         width: auto;
@@ -367,16 +373,16 @@
   margin-top: -0.9%;
 }
 .modal-content {
-  background-color: #ffff;
+  background-color: var(--color-surface);
   border-radius: 5px;
   width: 130%;
   @media only screen and (min-width: 740px) and (max-width: 1024px) {
     width: 900px;
-    background-color: #ffff;
+    background-color: var(--color-surface);
   }
   @media only screen and (min-width: 320px) and (max-width: 740px) {
     width: 100%;
-    background-color: #ffff;
+    background-color: var(--color-surface);
   }
 }
 
@@ -392,7 +398,7 @@
   justify-content: center;
   width: 900px !important;
   max-width: 1500px; /* Set a maximum width for the modal */
-  background-color: #ffffff;
+  background-color: var(--color-surface);
   border-radius: 5px;
   padding: 10px; /* Add padding for content */
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); /* Add a subtle shadow for depth */
