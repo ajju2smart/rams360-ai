@@ -258,11 +258,7 @@
 
 .project-delete-modal-user {
   width: 40%;
-  height: 300px;
-  margin: 17% 10% 0% 34% !important;
-  display: flex !important;
-  justify-content: center !important;
-  align-items: center !important;
+  // margin offset removed — Bootstrap handles centering via flexbox
 }
 .btn-check:focus + .btn-primary,
 .btn-primary:focus {

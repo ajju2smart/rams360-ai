@@ -1,11 +1,17 @@
 import axios from "axios";
 
-const API_BASE_URL_LOCAL = "http://localhost:5004/"; // Change this to your backend URL
-const API_BASE_URL_PROD = "https://rams360server-86d8d55cead8.herokuapp.com/";
-const API_BASE_URL_PROD_MAIN = "https://api.rams360tech.com/";
+// REACT_APP_API_URL must be set at build time via docker-compose build args.
+// Example: REACT_APP_API_URL=http://localhost:8000
+// DO NOT add fallback URLs here — a missing env var should fail visibly, not silently route to production.
+if (!process.env.REACT_APP_API_URL) {
+  console.error(
+    "[Api.js] REACT_APP_API_URL is not defined. " +
+    "Set it in docker-compose.yml build args or .env before building."
+  );
+}
 
 const Api = axios.create({
-  baseURL: process.env.REACT_APP_API_URL || API_BASE_URL_PROD_MAIN,
+  baseURL: process.env.REACT_APP_API_URL || "http://localhost:8000",
   withCredentials: true, // sends cookies automatically
 });
 

@@ -78,9 +78,7 @@
 }
 .pbs-modal {
   width: 70%;
-  margin: 0% 10% 0% 20% !important;
-  display: flex !important;
-  justify-content: center !important;
+  // margin offset removed — Bootstrap handles centering via flexbox
 }
 .pbs-modal-body {
   height: 100% !important;
@@ -151,9 +149,7 @@
 }
 .main-modal-pbs {
   width: 50%;
-  margin: 0% 0% 0% 30%;
-  display: flex !important;
-  justify-content: center !important;
+  // margin offset removed — Bootstrap handles centering
 }
 .main-modal-body-pbs {
   height: 80px !important;

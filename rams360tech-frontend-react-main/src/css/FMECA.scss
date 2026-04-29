@@ -72,15 +72,22 @@
     width: 100%;
   }
 }
+// Button row — flex end alignment replaces magic margin-left hacks
+.fmeca-button-row {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 16px;
+}
+// Legacy aliases — keep for now, no margin hack
 .fmeca-button {
-  margin-left: 30% !important;
-
+  // margin-left offset removed — use .fmeca-button-row wrapper instead
 }
-.pbs-button-1{
-  margin-left: 40%;
+.pbs-button-1 {
+  // margin-left offset removed
 }
-.ok-buttons{
-  margin-left: 35% !important;
+.ok-buttons {
+  // margin-left offset removed
 }
 .delete-cancel-btn1 {
   width: 150px;
@@ -107,7 +114,7 @@
   border-bottom-color: blue !important;
 }
 .buttons {
-  margin-left: 40%;
+  // margin-left offset removed — use flex parent instead
 }
 .table > :not(:first-child) {
   border-top: 0px !important;

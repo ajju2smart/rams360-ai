@@ -1,14 +1,13 @@
+// Modal positioning is handled by React-Bootstrap's flex centering.
+// Margin-based offsets removed — they broke on non-1080p screens.
 .user-modal {
-  margin: 5% 10% 10% 15% !important;
+  // no margin override — let Bootstrap center it
 }
 .add-user-modal {
   width: 80%;
-  margin: 10% 15% 15% 20% !important;
 }
 .user-delete-modal {
   width: 40%;
-  height: 300px;
-  margin: 17% 10% 0% 40% !important;
 }
 .user-sec {
   background-color: #1d5460;

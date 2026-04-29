@@ -1,0 +1,123 @@
+// ─── Unified Button Component ─────────────────────────────────────────────────
+// Replaces: save-btn, delete-cancel-btn, pro-cancel-btn, pbs-add-btn, FRP-button
+// DO NOT define button colors outside this file.
+
+.btn-unified {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+
+  font-weight: 600;
+  line-height: 1;
+  white-space: nowrap;
+  text-decoration: none;
+  user-select: none;
+
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background 150ms ease, transform 150ms ease, box-shadow 150ms ease;
+
+  // ── Sizes ──
+  &--md {
+    height: 38px;
+    padding: 0 18px;
+    font-size: 0.82rem;
+    min-width: 90px;
+  }
+
+  &--sm {
+    height: 30px;
+    padding: 0 12px;
+    font-size: 0.76rem;
+    min-width: 70px;
+  }
+
+  &--lg {
+    height: 46px;
+    padding: 0 24px;
+    font-size: 0.9rem;
+    min-width: 110px;
+  }
+
+  // ── Variants ──
+  &--primary {
+    background: var(--primary-color, #0d9488);
+    color: #ffffff !important;
+
+    &:hover:not(:disabled) {
+      background: var(--primary-dark, #0f766e);
+      transform: translateY(-1px);
+      box-shadow: 0 2px 8px rgba(13, 148, 136, 0.28);
+    }
+
+    &:active:not(:disabled) {
+      transform: translateY(0);
+      box-shadow: none;
+    }
+  }
+
+  &--secondary {
+    background: #ffffff;
+    color: #334155 !important;
+    border: 1px solid #e2e8f0;
+
+    &:hover:not(:disabled) {
+      background: #f1f5f9;
+      border-color: var(--primary-color, #0d9488);
+      color: var(--primary-color, #0d9488) !important;
+    }
+  }
+
+  &--danger {
+    background: #ef4444;
+    color: #ffffff !important;
+
+    &:hover:not(:disabled) {
+      background: #dc2626;
+      transform: translateY(-1px);
+      box-shadow: 0 2px 8px rgba(239, 68, 68, 0.28);
+    }
+  }
+
+  &--ghost {
+    background: transparent;
+    color: #64748b !important;
+
+    &:hover:not(:disabled) {
+      background: #f1f5f9;
+      color: var(--primary-color, #0d9488) !important;
+    }
+  }
+
+  // ── States ──
+  &:disabled,
+  &--disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    transform: none !important;
+    box-shadow: none !important;
+  }
+
+  &--loading {
+    cursor: wait;
+  }
+
+  // ── Spinner ──
+  &__spinner {
+    width: 13px;
+    height: 13px;
+    border: 2px solid rgba(255, 255, 255, 0.35);
+    border-top-color: #ffffff;
+    border-radius: 50%;
+    animation: btn-spin 0.6s linear infinite;
+    flex-shrink: 0;
+  }
+
+  @keyframes btn-spin {
+    to {
+      transform: rotate(360deg);
+    }
+  }
+}

@@ -71,45 +71,60 @@ function Login() {
           {/* Stats row */}
           <div className="rl-hero__stats">
             <div className="rl-hero__stat">
-              <span className="rl-hero__stat-value">99.9%</span>
+              <span className="rl-hero__stat-value">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M22 7L13.5 15.5L8.5 10.5L2 17"/><path d="M16 7H22V13"/></svg>
+                99.9%
+              </span>
               <span className="rl-hero__stat-label">PLATFORM UPTIME</span>
             </div>
             <div className="rl-hero__stat">
-              <span className="rl-hero__stat-value">Enterprise</span>
+              <span className="rl-hero__stat-value">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+                Enterprise
+              </span>
               <span className="rl-hero__stat-label">GRADE SECURITY</span>
             </div>
             <div className="rl-hero__stat">
-              <span className="rl-hero__stat-value">Global</span>
+              <span className="rl-hero__stat-value">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+                Global
+              </span>
               <span className="rl-hero__stat-label">ENGINEERING READY</span>
             </div>
           </div>
 
           {/* Feature pills */}
           <div className="rl-hero__pills">
-            <span className="rl-hero__pill">✔ Actionable Insights</span>
-            <span className="rl-hero__pill">✔ Predictive Intelligence</span>
-            <span className="rl-hero__pill">✔ Scalable &amp; Secure</span>
-            <span className="rl-hero__pill">✔ Built for Engineers</span>
+            <span className="rl-hero__pill"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg> Actionable Insights</span>
+            <span className="rl-hero__pill"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg> Predictive Intelligence</span>
+            <span className="rl-hero__pill"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg> Scalable &amp; Secure</span>
+            <span className="rl-hero__pill"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg> Built for Engineers</span>
           </div>
 
           {/* Feature cards */}
           <div className="rl-hero__cards">
             <div className="rl-hero__card">
-              <span className="rl-hero__card-icon">🛡</span>
+              <div className="rl-hero__card-icon">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+              </div>
               <div>
                 <div className="rl-hero__card-title">Enterprise Secure</div>
                 <div className="rl-hero__card-desc">Protected with enterprise-grade security and governance.</div>
               </div>
             </div>
             <div className="rl-hero__card">
-              <span className="rl-hero__card-icon">⚙</span>
+              <div className="rl-hero__card-icon">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M9 3v18"/><path d="M15 3v18"/><path d="M3 9h18"/><path d="M3 15h18"/></svg>
+              </div>
               <div>
                 <div className="rl-hero__card-title">AI Powered</div>
                 <div className="rl-hero__card-desc">Machine learning that turns data into engineering impact.</div>
               </div>
             </div>
             <div className="rl-hero__card">
-              <span className="rl-hero__card-icon">🌐</span>
+              <div className="rl-hero__card-icon">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+              </div>
               <div>
                 <div className="rl-hero__card-title">Global Ready</div>
                 <div className="rl-hero__card-desc">Built for scale across teams and locations worldwide.</div>
@@ -139,13 +154,13 @@ function Login() {
           <p className="rl-card__subtitle">Sign in to access your Rams360 dashboard</p>
 
           <Formik
-            initialValues={{ email: "", password: "" }}
+            initialValues={{ email: "", password: "", remember: false }}
             validationSchema={loginSchema}
             validateOnBlur
             validateOnChange={false}
             onSubmit={handleSubmit}
           >
-            {({ handleChange, handleSubmit: formikSubmit, handleBlur, isSubmitting, errors, touched }) => (
+            {({ handleChange, handleSubmit: formikSubmit, handleBlur, isSubmitting, errors, touched, values }) => (
               <form onSubmit={formikSubmit} className="rl-form" noValidate>
 
                 {/* Email */}
@@ -153,9 +168,7 @@ function Login() {
                   <label className="rl-field__label" htmlFor="rl-email">Email address</label>
                   <div className="rl-field__wrap">
                     <span className="rl-field__icon">
-                      <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-                        <path d="M2 4h12v8H2V4zm0 0l6 5 6-5" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round"/>
-                      </svg>
+                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
                     </span>
                     <input
                       id="rl-email"
@@ -181,10 +194,7 @@ function Login() {
                   </div>
                   <div className="rl-field__wrap">
                     <span className="rl-field__icon">
-                      <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-                        <rect x="3" y="7" width="10" height="7" rx="1.5" stroke="currentColor" strokeWidth="1.4"/>
-                        <path d="M5 7V5a3 3 0 016 0v2" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round"/>
-                      </svg>
+                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
                     </span>
                     <input
                       id="rl-password"
@@ -210,11 +220,22 @@ function Login() {
                   </ErrorMessage>
                 </div>
 
+                {/* Remember Me */}
+                <label className="rl-remember">
+                  <input 
+                    type="checkbox" 
+                    name="remember" 
+                    checked={values.remember}
+                    onChange={handleChange}
+                  />
+                  <span>Remember me</span>
+                </label>
+
                 {/* Server error */}
                 {errorMessage && (
-                  <div className="rl-error-banner" role="alert">
+                  <div className="rl-error-banner" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: '#fef2f2', border: '1px solid #fecaca', borderRadius: '12px', padding: '10px 14px', fontSize: '0.85rem', color: '#dc2626' }}>
                     <span>{errorMessage}</span>
-                    <button type="button" onClick={() => setErrorMessage(null)} aria-label="Dismiss">×</button>
+                    <button type="button" onClick={() => setErrorMessage(null)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#dc2626', fontSize: '1.1rem' }}>×</button>
                   </div>
                 )}
 
@@ -255,8 +276,18 @@ function Login() {
             )}
           </Formik>
 
-          <p className="rl-card__footer">© 2026 Rams360 Engineering Intelligence. All rights reserved.</p>
         </div>
+
+        {/* Footer info at bottom right */}
+        <div className="rl-footer">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+          <span>© 2026 Rams360 Engineering Intelligence. All rights reserved.</span>
+        </div>
+      </div>
+
+      {/* Floating AI Button */}
+      <div className="rl-ai-button" title="Chat with AI Assistant">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 8V4H8"/><rect x="4" y="8" width="16" height="12" rx="2"/><path d="M2 14h2"/><path d="M20 14h2"/><path d="M15 13v2"/><path d="M9 13v2"/></svg>
       </div>
 
     </div>
