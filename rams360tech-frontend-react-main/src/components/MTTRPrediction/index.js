@@ -1220,7 +1220,7 @@ const MTTRPrediction = (props, active) => {
   };
 
   return (
-    <div className="frp-main px-4" style={{ marginTop: "40px" }}>
+    <div className="user-workspace-container frp-main">
       {isLoading ? (
         <Loader />
       ) : (

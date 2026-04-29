@@ -482,7 +482,7 @@ const hasWritePermission = () => {
   };
 
   return (
-    <div>
+    <div className="user-workspace-container">
       {isLoading ? (
         <Loader />
       ) : (

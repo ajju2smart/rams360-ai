@@ -1125,7 +1125,7 @@ function Index(props) {
   const canWrite = writePermission === true || writePermission === "undefined" || role === "admin" || (isOwner === true && createdBy === userId);
 
   return (
-    <div className="fmeca-main px-4" style={{ marginTop: "40px" }}>
+    <div className="user-workspace-container fmeca-main">
       {isLoading ? (
         <Loader />
       ) : (

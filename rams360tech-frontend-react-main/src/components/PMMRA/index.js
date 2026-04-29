@@ -1742,7 +1742,7 @@ const getProjectPermission = () => {
   };
 
   return (
-    <div style={{ marginTop: "40px" }} className="mx-4">
+    <div className="user-workspace-container">
       {isLoading ? (
         <Loader />
       ) : (

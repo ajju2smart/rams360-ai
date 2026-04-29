@@ -81,6 +81,7 @@
   color: var(--rl-text-white);
   margin: 0 0 20px;
   letter-spacing: -0.02em;
+  text-align: left;
 
   &--accent {
     color: var(--rl-accent);
@@ -98,6 +99,7 @@
   max-width: 480px;
   margin: 0 0 36px;
   font-weight: 400;
+  text-align: left;
 }
 
 // Stats row

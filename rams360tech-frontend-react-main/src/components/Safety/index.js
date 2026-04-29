@@ -1100,7 +1100,7 @@ function Index(props) {
     (isOwner === true && createdBy === userId);
 
   return (
-    <div className="mx-4" style={{ marginTop: "40px" }}>
+    <div className="user-workspace-container">
       {isLoading ? (
         <Loader />
       ) : (

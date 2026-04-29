@@ -458,7 +458,7 @@ function Index(props) {
   };
 
   return (
-    <div className=" mx-4" style={{ marginTop: "90px" }}>
+    <div className="user-workspace-container">
       {isLoading ? (
         <Loader />
       ) : (

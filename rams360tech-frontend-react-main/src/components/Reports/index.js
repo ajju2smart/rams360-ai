@@ -183,8 +183,8 @@ function Reports(props) {
   };
 
   return (
-    <div>
-      <div className="mt-5">
+    <div className="user-workspace-container">
+      <div className="mt-2">
         <div>
           <div className="mttr-sec mt-0">
             <p className="mb-0 para-tag d-flex justify-content-center">Report</p>
