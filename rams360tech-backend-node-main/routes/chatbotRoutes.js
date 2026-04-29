@@ -1,9 +1,9 @@
 import { Router } from "express";
 import { handleChatMessage } from "../controllers/chatbotController.js";
-import { verifyToken } from "../utils/tokenAuth.js";
 
 const router = Router();
 
-router.post("/ask", verifyToken, handleChatMessage);
+// Public route — chatbot is accessible on login page (no auth required)
+router.post("/ask", handleChatMessage);
 
 export default router;

@@ -29,9 +29,9 @@
 
 // ─── LEFT HERO PANEL ─────────────────────────────────────────────────────────
 .rl-hero {
-  flex: 0 0 58%;
+  flex: 1;
   background-color: #041a14;
-  background-image: 
+  background-image:
     radial-gradient(circle at 50% 50%, rgba(34, 197, 94, 0.12) 0%, transparent 70%),
     linear-gradient(rgba(255, 255, 255, 0.05) 1px, transparent 1px),
     linear-gradient(90deg, rgba(255, 255, 255, 0.05) 1px, transparent 1px);
@@ -39,17 +39,17 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 60px;
+  padding: 32px 48px;
   position: relative;
   overflow: hidden;
 
   @media (max-width: 1024px) {
-    padding: 40px;
+    padding: 28px 32px;
   }
 
   @media (max-width: 900px) {
     flex: none;
-    padding: 60px 20px;
+    padding: 40px 20px;
   }
 }
 
@@ -57,7 +57,7 @@
   position: relative;
   z-index: 1;
   width: 100%;
-  max-width: 760px;
+  max-width: 900px;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -66,7 +66,7 @@
 
 // Brand
 .rl-hero__brand {
-  margin-bottom: 56px;
+  margin-bottom: 28px;
   display: flex;
   justify-content: center;
 }
@@ -80,32 +80,43 @@
   opacity: 0.8;
 }
 
+.rl-hero__brand-logo {
+  height: 44px;
+  width: auto;
+  max-width: 200px;
+  object-fit: contain;
+  background: #061f17;
+  border-radius: 8px;
+  padding: 8px 20px;
+}
+
 // Headline
 .rl-hero__headline {
-  font-size: 4.5rem;
+  font-size: 3.5rem;
   font-weight: 900;
-  line-height: 1;
+  line-height: 1.15;
   color: #fff;
-  margin: 0 0 24px;
-  letter-spacing: -0.04em;
+  margin: 0 0 16px;
+  letter-spacing: -0.02em;
   text-align: center;
 
   span {
     color: #22c55e;
     display: block;
+    line-height: 1.15;
   }
 
   @media (max-width: 1200px) {
-    font-size: 3.5rem;
+    font-size: 2.8rem;
   }
 }
 
 .rl-hero__sub {
-  font-size: 1.1rem;
+  font-size: 0.95rem;
   color: rgba(255, 255, 255, 0.65);
-  line-height: 1.6;
-  max-width: 600px;
-  margin: 0 auto 56px;
+  line-height: 1.5;
+  max-width: 700px;
+  margin: 0 auto 24px;
   font-weight: 400;
   text-align: center;
 }
@@ -114,12 +125,12 @@
 .rl-hero__stats {
   display: flex;
   justify-content: center;
-  gap: 60px;
-  margin-bottom: 56px;
+  gap: 40px;
+  margin-bottom: 20px;
   width: 100%;
 
   @media (max-width: 600px) {
-    gap: 30px;
+    gap: 20px;
     flex-direction: column;
   }
 }
@@ -159,13 +170,13 @@
   display: grid;
   grid-template-columns: repeat(2, auto);
   justify-content: center;
-  gap: 20px 48px;
-  margin-bottom: 64px;
+  gap: 10px 40px;
+  margin-bottom: 20px;
   width: 100%;
 
   @media (max-width: 600px) {
     grid-template-columns: 1fr;
-    gap: 16px;
+    gap: 10px;
   }
 }
 
@@ -191,13 +202,16 @@
 .rl-hero__cards {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: 24px;
-  margin-bottom: 64px;
+  gap: 16px;
+  margin-bottom: 20px;
   width: 100%;
 
-  @media (max-width: 1100px) {
+  @media (max-width: 900px) {
+    grid-template-columns: repeat(3, 1fr);
+  }
+
+  @media (max-width: 600px) {
     grid-template-columns: 1fr;
-    max-width: 440px;
   }
 }
 
@@ -205,57 +219,58 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 16px;
+  gap: 8px;
   background: rgba(255, 255, 255, 0.03);
   border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: 24px;
-  padding: 32px 24px;
+  border-radius: 16px;
+  padding: 18px 16px;
   text-align: center;
   transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
 
   &:hover {
     background: rgba(255, 255, 255, 0.05);
     border-color: rgba(34, 197, 94, 0.3);
-    transform: translateY(-8px);
-    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+    transform: translateY(-4px);
+    box-shadow: 0 12px 24px rgba(0, 0, 0, 0.4);
   }
 }
 
 .rl-hero__card-icon {
-  width: 52px;
-  height: 52px;
+  width: 36px;
+  height: 36px;
   background: rgba(34, 197, 94, 0.1);
-  border-radius: 14px;
+  border-radius: 10px;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 1.5rem;
+  font-size: 1.1rem;
   color: #22c55e;
 }
 
 .rl-hero__card-title {
-  font-size: 1.125rem;
+  font-size: 0.875rem;
   font-weight: 700;
   color: #fff;
+  white-space: nowrap;
 }
 
 .rl-hero__card-desc {
-  font-size: 0.9rem;
+  font-size: 0.775rem;
   color: rgba(255, 255, 255, 0.45);
-  line-height: 1.6;
+  line-height: 1.4;
 }
 
 // Tagline
 .rl-hero__tagline {
   background: rgba(34, 197, 94, 0.1);
   border: 1px solid rgba(34, 197, 94, 0.15);
-  border-radius: 20px;
-  padding: 20px 40px;
-  font-size: 1rem;
+  border-radius: 14px;
+  padding: 12px 24px;
+  font-size: 0.85rem;
   color: rgba(255, 255, 255, 0.85);
   text-align: center;
   width: 100%;
-  line-height: 1.6;
+  line-height: 1.5;
 
   span {
     color: #22c55e;
@@ -265,79 +280,83 @@
 
 // ─── RIGHT FORM PANEL ─────────────────────────────────────────────────────────
 .rl-form-panel {
-  flex: 1;
+  flex: 0 0 40%;
+  max-width: 440px;
+  min-width: 360px;
   background: #f0f4f3;
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 40px;
+  padding: 20px 16px;
   position: relative;
   border-top: 4px solid var(--rl-accent);
+  overflow-y: auto;
+
+  @media (max-width: 900px) {
+    flex: none;
+    max-width: 100%;
+    min-width: unset;
+    width: 100%;
+  }
 
   @media (max-width: 480px) {
-    padding: 20px;
+    padding: 12px 10px;
   }
 }
 
 // ─── Card ─────────────────────────────────────────────────────────────────────
 .rl-card {
   width: 100%;
-  max-width: 440px;
+  max-width: 380px;
   background: #ffffff;
-  border-radius: 24px;
-  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
-  padding: 48px 40px;
+  border-radius: 20px;
+  box-shadow: 0 8px 20px -4px rgba(0, 0, 0, 0.1), 0 4px 8px -4px rgba(0, 0, 0, 0.08);
+  padding: 24px 24px 20px;
   position: relative;
 
   @media (max-width: 480px) {
-    padding: 32px 24px;
+    padding: 16px 14px;
   }
 }
 
 .rl-card__logo {
   display: flex;
   justify-content: center;
-  margin-bottom: 32px;
+  margin-bottom: 14px;
 }
 
-.rl-card__logo-text {
+.rl-card__logo-img {
+  height: auto;
+  width: auto;
+  max-height: 38px;
+  max-width: 160px;
+  object-fit: contain;
   background: #061f17;
-  color: #fff;
-  font-size: 1rem;
-  font-weight: 800;
-  letter-spacing: 0.1em;
-  padding: 10px 24px;
-  border-radius: 12px;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-
-  span {
-    color: var(--rl-accent);
-  }
+  border-radius: 10px;
+  padding: 8px 18px;
 }
 
 .rl-card__title {
-  font-size: 1.8rem;
+  font-size: 1.4rem;
   font-weight: 800;
   color: #111827;
   text-align: center;
-  margin: 0 0 8px;
+  margin: 0 0 3px;
   letter-spacing: -0.02em;
 }
 
 .rl-card__subtitle {
-  font-size: 0.95rem;
+  font-size: 0.825rem;
   color: #6b7280;
   text-align: center;
-  margin: 0 0 32px;
+  margin: 0 0 16px;
 }
 
 // ─── Form ─────────────────────────────────────────────────────────────────────
 .rl-form {
   display: flex;
   flex-direction: column;
-  gap: 20px;
+  gap: 14px;
 }
 
 // ─── Field ────────────────────────────────────────────────────────────────────
@@ -388,7 +407,7 @@
 
   &__input {
     width: 100%;
-    height: 48px;
+    height: 42px;
     padding: 0 16px 0 44px;
     font-size: 0.95rem;
     color: #111827;
@@ -459,7 +478,7 @@
 // ─── Submit ───────────────────────────────────────────────────────────────────
 .rl-submit {
   width: 100%;
-  height: 52px;
+  height: 44px;
   background: #15803d;
   color: #fff;
   font-size: 1rem;
@@ -496,7 +515,7 @@
   font-size: 0.75rem;
   font-weight: 700;
   text-transform: uppercase;
-  margin: 8px 0;
+  margin: 4px 0;
 
   &::before, &::after {
     content: '';
@@ -509,7 +528,7 @@
 // ─── SSO buttons ──────────────────────────────────────────────────────────────
 .rl-sso {
   width: 100%;
-  height: 48px;
+  height: 42px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -555,42 +574,4 @@
   }
 }
 
-// ─── AI Button ────────────────────────────────────────────────────────────────
-.rl-ai-button {
-  position: fixed;
-  bottom: 24px;
-  right: 24px;
-  width: 56px;
-  height: 56px;
-  background: #0d9488;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: #fff;
-  font-size: 1.5rem;
-  box-shadow: 0 4px 15px rgba(13, 148, 136, 0.4);
-  cursor: pointer;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  z-index: 100;
-
-  &::after {
-    content: 'AI';
-    position: absolute;
-    top: -5px;
-    right: -5px;
-    background: #ef4444;
-    color: #fff;
-    font-size: 0.65rem;
-    font-weight: 800;
-    padding: 2px 5px;
-    border-radius: 6px;
-    border: 2px solid #fff;
-  }
-
-  &:hover {
-    transform: scale(1.1) rotate(5deg);
-    background: #0f766e;
-    box-shadow: 0 6px 20px rgba(13, 148, 136, 0.5);
-  }
-}
+/* .rl-ai-button removed — replaced by ChatbotWidget component */
