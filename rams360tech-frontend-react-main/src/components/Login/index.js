@@ -20,7 +20,6 @@ function Login() {
   const history = useHistory();
   const [passwordShown, setPasswordShown] = useState(false);
   const [errorMessage, setErrorMessage] = useState(null);
-  const [rememberMe, setRememberMe] = useState(false);
 
   useEffect(() => {
     if (user) {
@@ -210,17 +209,6 @@ function Login() {
                     {(msg) => <span className="rl-field__error">{msg}</span>}
                   </ErrorMessage>
                 </div>
-
-                {/* Remember me */}
-                <label className="rl-remember">
-                  <input
-                    type="checkbox"
-                    checked={rememberMe}
-                    onChange={(e) => setRememberMe(e.target.checked)}
-                    className="rl-remember__check"
-                  />
-                  <span className="rl-remember__label">Remember me</span>
-                </label>
 
                 {/* Server error */}
                 {errorMessage && (

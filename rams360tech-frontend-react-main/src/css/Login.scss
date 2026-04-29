@@ -367,27 +367,6 @@
   }
 }
 
-// ─── Remember me ──────────────────────────────────────────────────────────────
-.rl-remember {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  cursor: pointer;
-  margin-top: -4px;
-
-  &__check {
-    width: 15px;
-    height: 15px;
-    accent-color: var(--rl-accent);
-    cursor: pointer;
-  }
-
-  &__label {
-    font-size: 0.8375rem;
-    color: var(--rl-text-gray);
-  }
-}
-
 // ─── Error banner ─────────────────────────────────────────────────────────────
 .rl-error-banner {
   display: flex;
