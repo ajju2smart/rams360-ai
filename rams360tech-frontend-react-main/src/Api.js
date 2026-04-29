@@ -5,7 +5,7 @@ const API_BASE_URL_PROD = "https://rams360server-86d8d55cead8.herokuapp.com/";
 const API_BASE_URL_PROD_MAIN = "https://api.rams360tech.com/";
 
 const Api = axios.create({
-  baseURL: API_BASE_URL_PROD_MAIN,
+  baseURL: process.env.REACT_APP_API_URL || API_BASE_URL_PROD_MAIN,
   withCredentials: true, // sends cookies automatically
 });
 

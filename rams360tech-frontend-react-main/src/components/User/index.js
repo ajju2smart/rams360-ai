@@ -51,6 +51,7 @@ function User() {
   const [changePasswordUserId, setChangePasswordUserId] = useState(null);
   const [changePasswordShown, setChangePasswordShown] = useState(false);
   const [changeConfirmPasswordShown, setChangeConfirmPasswordShown] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
 
   const history = useHistory();
   const userId = user?._id;
@@ -296,12 +297,39 @@ function User() {
       <div className="mttr-sec ">
         <p className=" mb-0 para-tag">User Informations</p>
       </div>
-      <div className="d-flex justify-content-end mt-4 mb-2">
-        {activeUserRole === "Employee" ? null : (
-          <Button className="save-btn " type="submit" onClick={() => setShow(true)}>
-            CREATE USER
-          </Button>
-        )}
+      <div className="mt-4 mb-2">
+        <div style={{ display: "inline-flex", alignItems: "center", gap: "10px" }}>
+          <Form.Control
+            type="text"
+            placeholder="Search by name, email or role..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            style={{ width: "320px", borderRadius: "8px", border: "1px solid #ced4da", height: "40px" }}
+          />
+          {activeUserRole === "Employee" ? null : (
+            <Button
+              type="button"
+              onClick={() => setShow(true)}
+              style={{
+                background: "linear-gradient(135deg, #1d5460 0%, #2a7a8c 100%)",
+                border: "none",
+                borderRadius: "8px",
+                padding: "8px 20px",
+                fontWeight: "600",
+                fontSize: "13px",
+                letterSpacing: "0.5px",
+                color: "#fff",
+                whiteSpace: "nowrap",
+                boxShadow: "0 2px 8px rgba(29,84,96,0.3)",
+                transition: "all 0.2s ease",
+              }}
+              onMouseEnter={(e) => e.currentTarget.style.background = "linear-gradient(135deg, #2a7a8c 0%, #1d5460 100%)"}
+              onMouseLeave={(e) => e.currentTarget.style.background = "linear-gradient(135deg, #1d5460 0%, #2a7a8c 100%)"}
+            >
+              + CREATE USER
+            </Button>
+          )}
+        </div>
       </div>
       <Modal show={show} size="lg" centered backdrop="static">
         <div className="m-3">
@@ -823,8 +851,14 @@ function User() {
               </tr>
             </thead>
             <tbody>
-              {data.length > 0 ? (
-                data.map((list, key) => (
+              {data.filter((list) => {
+                const q = searchQuery.toLowerCase();
+                return !q || list?.name?.toLowerCase().includes(q) || list?.email?.toLowerCase().includes(q) || list?.role?.toLowerCase().includes(q);
+              }).length > 0 ? (
+                data.filter((list) => {
+                  const q = searchQuery.toLowerCase();
+                  return !q || list?.name?.toLowerCase().includes(q) || list?.email?.toLowerCase().includes(q) || list?.role?.toLowerCase().includes(q);
+                }).map((list, key) => (
                   <tr>
                     <td>{key + 1}</td>
                     <td>{list.name}</td>
@@ -880,7 +914,9 @@ function User() {
                 ))
               ) : (
                 <tr className="text-center">
-                  <td colSpan="8">Users yet to be created</td>
+                  <td colSpan="6">
+                    {searchQuery ? "No users match your search." : "Users yet to be created"}
+                  </td>
                 </tr>
               )}
             </tbody>

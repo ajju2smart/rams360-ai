@@ -26,6 +26,7 @@ export default function ProjectList(props, list) {
   const [projectOwner, setProjectOwner] = useState();
   const [confirmDeleteMsg, setConfirmDeleteMsg] = useState(false);
   const [projectDeleteMessage, setProjectDeleteMessage] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
   const history = useHistory();
   const [show, setShow] = useState(false);
   const [owner, setOwner] = useState();
@@ -209,12 +210,39 @@ export default function ProjectList(props, list) {
             <p className=" mb-0 para-tag">Projects</p>
           </div>
 
-          <div className="d-flex justify-content-end mt-4 low-length-responsive">
-            <Button className="save-btn  mb-3" variant="secondary" onClick={handleOpenModal} disabled={isLoading}>
-              {isLoading ? "Loading..." : "CREATE PROJECT"}
-            </Button>
+          <div className="mt-4 mb-3">
+            <div style={{ display: "inline-flex", alignItems: "center", gap: "10px" }}>
+              <Form.Control
+                type="text"
+                placeholder="Search by project name or number..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                style={{ width: "320px", borderRadius: "8px", border: "1px solid #ced4da", height: "40px" }}
+              />
+              <Button
+                onClick={handleOpenModal}
+                disabled={isLoading}
+                style={{
+                  background: "linear-gradient(135deg, #1d5460 0%, #2a7a8c 100%)",
+                  border: "none",
+                  borderRadius: "8px",
+                  padding: "8px 20px",
+                  fontWeight: "600",
+                  fontSize: "13px",
+                  letterSpacing: "0.5px",
+                  color: "#fff",
+                  whiteSpace: "nowrap",
+                  boxShadow: "0 2px 8px rgba(29,84,96,0.3)",
+                  transition: "all 0.2s ease",
+                }}
+                onMouseEnter={(e) => e.currentTarget.style.background = "linear-gradient(135deg, #2a7a8c 0%, #1d5460 100%)"}
+                onMouseLeave={(e) => e.currentTarget.style.background = "linear-gradient(135deg, #1d5460 0%, #2a7a8c 100%)"}
+              >
+                {isLoading ? "Loading..." : "+ CREATE PROJECT"}
+              </Button>
+            </div>
           </div>
-          <Table bordered hover className="mt-4" style={{ bottom: "30px" }}>
+          <Table bordered hover className="mt-2" style={{ bottom: "30px" }}>
             <thead>
               <tr>
                 <th>ID</th>
@@ -224,8 +252,14 @@ export default function ProjectList(props, list) {
               </tr>
             </thead>
             <tbody>
-              {projectList?.length > 0 ? (
-                projectList?.map((list, i) => (
+              {projectList?.filter((list) => {
+                const q = searchQuery.toLowerCase();
+                return !q || list?.projectName?.toLowerCase().includes(q) || list?.projectNumber?.toLowerCase().includes(q);
+              }).length > 0 ? (
+                projectList?.filter((list) => {
+                  const q = searchQuery.toLowerCase();
+                  return !q || list?.projectName?.toLowerCase().includes(q) || list?.projectNumber?.toLowerCase().includes(q);
+                }).map((list, i) => (
                   <tr className=" mt-3 mb-3">
                     <td className="viewRow ">{i + 1}</td>
                     <td className="viewRow">{list?.projectNumber}</td>
@@ -358,8 +392,10 @@ export default function ProjectList(props, list) {
                 ))
               ) : (
                 <tr>
-                  <td colSpan="8">
-                    <h6 className="d-flex justify-content-center">No Records to Display</h6>
+                  <td colSpan="4">
+                    <h6 className="d-flex justify-content-center">
+                      {searchQuery ? "No projects match your search." : "No Records to Display"}
+                    </h6>
                   </td>
                 </tr>
               )}
