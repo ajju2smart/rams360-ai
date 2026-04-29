@@ -104,6 +104,9 @@ export async function createFMECA(req, res, next) {
           serviceDisruptionTime: data.serviceDisruptionTime,
           frequency: data.frequency,
           severity: data.severity,
+          occurrence: data.occurrence,
+          detection: data.detection,
+          rpn: data.rpn,
           riskIndex: data.riskIndex,
           designControl: data.designControl,
           maintenanceControl: data.maintenanceControl,
@@ -212,7 +215,23 @@ export async function createFMECANew(req, res, next) {
       cm,
     });
 
-    // 🔥 Always recalc
+    // Post-write concurrency guard — compensates for race between read and insert
+    const allAfterInsert = await FMECA.find({ projectId, productId })
+      .select("failureModeRatioAlpha endEffectRatioBeta");
+    const actualAlpha = allAfterInsert.reduce(
+      (acc, r) => acc + parseFloat(r.failureModeRatioAlpha || 0), 0
+    );
+    const actualBeta = allAfterInsert.reduce(
+      (acc, r) => acc + parseFloat(r.endEffectRatioBeta || 0), 0
+    );
+    if (actualAlpha > 1 + EPS || actualBeta > 1 + EPS) {
+      await FMECA.findByIdAndDelete(createdRecord._id);
+      return res.status(409).json({
+        message: "Concurrent write conflict detected. Please retry.",
+      });
+    }
+
+    // Recalc CR after confirmed insert
     await recalculateCR(projectId, productId, companyId);
 
     res.status(201).json({
@@ -233,7 +252,6 @@ export async function updateFMECA(req, res, next) {
     const currentFailureModeRadioAlphaValue = data.failureModeRatioAlpha;
 
     if (FailureModeRadioTrue) {
-      console.log("if condition")
       if (data.failureModeRatioAlpha <= 1) {
         const finalValue = [];
         FailureModeRadio?.map((list) => {
@@ -280,6 +298,9 @@ export async function updateFMECA(req, res, next) {
             serviceDisruptionTime: data.serviceDisruptionTime,
             frequency: data.frequency,
             severity: data.severity,
+            occurrence: data.occurrence,
+            detection: data.detection,
+            rpn: data.rpn,
             riskIndex: data.riskIndex,
             designControl: data.designControl,
             maintenanceControl: data.maintenanceControl,
@@ -298,8 +319,6 @@ export async function updateFMECA(req, res, next) {
             userField9: data.userField9,
             userField10: data.userField10,
           };
-          console.log("editData123....", editData);
-          console.log("data.fmecaId....", data.fmecaId);
           const editDetail = await FMECA.findByIdAndUpdate(data.fmecaId, editData, {
             new: true,
             runValidators: true,
@@ -320,11 +339,8 @@ export async function updateFMECA(req, res, next) {
           message: "Failure Mode Radio Alpha Must be Equal to One",
         });
       }
-    } else {
-      console.log("elseeeeeee")
     }
   } catch (error) {
-    console.log("error....", error)
     next(error);
   }
 }
@@ -460,7 +476,6 @@ export async function updateFMECANewFnl(req, res, next) {
       data: updatedRecord,
     });
   } catch (error) {
-    console.log("error....", error);
     next(error);
   }
 }
@@ -555,34 +570,16 @@ export async function createBulkUploadData(req, res, next) {
     const alphaTotal = existingFailureModeSum + bulkFailureModeSum;
     const betaTotal = existingEndEffectSum + bulkEndEffectSum;
 
-    console.log("existingFailureModeSum:", existingFailureModeSum);
-    console.log("bulkFailureModeSum:", bulkFailureModeSum);
-    console.log("alphaTotal:", alphaTotal);
-
-    console.log("existingEndEffectSum:", existingEndEffectSum);
-    console.log("bulkEndEffectSum:", bulkEndEffectSum);
-    console.log("betaTotal:", betaTotal);
-
     // 3️⃣ Validate totals (with EPS)
     if (alphaTotal > 1 + EPS) {
       return res.status(400).json({
         message: "Failure Mode Ratio Alpha sum must not exceed 1",
-        debug: {
-          existingFailureModeSum,
-          bulkFailureModeSum,
-          alphaTotal,
-        },
       });
     }
 
     if (betaTotal > 1 + EPS) {
       return res.status(400).json({
         message: "End Effect Ratio Beta sum must not exceed 1",
-        debug: {
-          existingEndEffectSum,
-          bulkEndEffectSum,
-          betaTotal,
-        },
       });
     }
 
@@ -620,6 +617,9 @@ export async function createBulkUploadData(req, res, next) {
       serviceDisruptionTime: item.serviceDisruptionTime,
       frequency: item.frequency,
       severity: item.severity,
+      occurrence: item.occurrence,
+      detection: item.detection,
+      rpn: item.rpn,
       riskIndex: item.riskIndex,
       designControl: item.designControl,
       maintenanceControl: item.maintenanceControl,
@@ -646,7 +646,6 @@ export async function createBulkUploadData(req, res, next) {
       data: { createData },
     });
   } catch (error) {
-    console.log("error.....", error);
     next(error);
   }
 }
@@ -776,6 +775,9 @@ export async function createBulkUploadDataNew(req, res, next) {
         serviceDisruptionTime: item.serviceDisruptionTime,
         frequency: item.frequency,
         severity: item.severity,
+        occurrence: item.occurrence,
+        detection: item.detection,
+        rpn: item.rpn,
         riskIndex: item.riskIndex,
         designControl: item.designControl,
         maintenanceControl: item.maintenanceControl,
@@ -814,7 +816,6 @@ export async function createBulkUploadDataNew(req, res, next) {
     });
 
   } catch (error) {
-    console.log("error.....", error);
     next(error);
   }
 }

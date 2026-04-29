@@ -75,6 +75,15 @@ const FMECASchema = new Schema({
   severity: {
     type: String,
   },
+  occurrence: {
+    type: Number,
+  },
+  detection: {
+    type: Number,
+  },
+  rpn: {
+    type: Number,
+  },
   riskIndex: {
     type: String,
   },
