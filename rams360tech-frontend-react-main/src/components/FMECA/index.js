@@ -7,9 +7,9 @@ import Loader from "../core/Loader";
 import Projectname from "../Company/projectname";
 import { toast } from "react-toastify";
 import {
-  faFileDownload,
+  faFileArrowUp,
   faTrash,
-  faFileUpload,
+  faFileArrowDown,
 } from "@fortawesome/free-solid-svg-icons";
 import CreatableSelect from "react-select/creatable";
 import * as XLSX from "xlsx";
@@ -106,7 +106,7 @@ const rowDataFields = [
   'operatingPhase', 'function', 'failureMode', 'failureModeRatioAlpha',
   'cause', 'subSystemEffect', 'systemEffect', 'endEffect', 'endEffectRatioBeta',
   'safetyImpact', 'referenceHazardId', 'realibilityImpact', 'serviceDisruptionTime',
-  'frequency', 'severity', 'riskIndex', 'detectableMeansDuringOperation',
+  'frequency', 'severity', 'occurrence', 'detection', 'rpn', 'riskIndex', 'detectableMeansDuringOperation',
   'detectableMeansToMaintainer', 'BuiltInTest', 'designControl', 'maintenanceControl',
   'exportConstraints', 'immediteActionDuringOperationalPhase',
   'immediteActionDuringNonOperationalPhase',
@@ -136,6 +136,7 @@ const SmartSelectCell = ({
   required,
   rowDraftRef,
   markFieldChange,
+  computeAndMarkRpn,
   allSepareteData,
   flattenedConnect,
   getConnectedValuesForField,
@@ -193,6 +194,7 @@ const SmartSelectCell = ({
             };
             onChange(newValue);
             markFieldChange(rowId, fieldName, newValue);
+            computeAndMarkRpn(rowId, fieldName, newValue, rowData);
           }}
           placeholder={label + (required ? " *" : "")}
           style={{ height: "40px", borderRadius: "4px", width: "100%", borderColor: hasError ? "#d32f2f" : "#ccc" }}
@@ -236,6 +238,7 @@ const SmartSelectCell = ({
 
           onChange(newValue);
           markFieldChange(rowId, fieldName, newValue);
+          computeAndMarkRpn(rowId, fieldName, newValue, rowData);
         }}
         menuPortalTarget={document.body}
         styles={{
@@ -363,6 +366,18 @@ function Index(props) {
     });
   }, []);
 
+  // ── RPN auto-compute: fires whenever severity / occurrence / detection changes ──
+  const computeAndMarkRpn = useCallback((rowId, fieldName, value, rowData) => {
+    if (!['severity', 'occurrence', 'detection'].includes(fieldName)) return;
+    const draft = rowDraftRef.current[rowId] || {};
+    const s = parseFloat(fieldName === 'severity'   ? value : (draft.severity   ?? rowData?.severity));
+    const o = parseFloat(fieldName === 'occurrence' ? value : (draft.occurrence ?? rowData?.occurrence));
+    const d = parseFloat(fieldName === 'detection'  ? value : (draft.detection  ?? rowData?.detection));
+    const newRpn = (!isNaN(s) && !isNaN(o) && !isNaN(d)) ? String(s * o * d) : "";
+    rowDraftRef.current[rowId] = { ...(rowDraftRef.current[rowId] || {}), rpn: newRpn };
+    markFieldChange(rowId, 'rpn', newRpn);
+  }, [markFieldChange]);
+
   const userId = user?._id;
   const [existingFailureAlpha, setExistingFailureAlpha] = useState(1);
   const [existingEndBeta, setExistingEndBeta] = useState(1);
@@ -387,6 +402,7 @@ function Index(props) {
     cause: "", subSystemEffect: "", systemEffect: "", endEffect: "",
     endEffectRatioBeta: "", safetyImpact: "", referenceHazardId: "",
     realibilityImpact: "", serviceDisruptionTime: "", frequency: "", severity: "",
+    occurrence: "", detection: "", rpn: "",
     riskIndex: "", detectableMeansDuringOperation: "", detectableMeansToMaintainer: "",
     BuiltInTest: "", designControl: "", maintenanceControl: "", exportConstraints: "",
     immediteActionDuringOperationalPhase: "", immediteActionDuringNonOperationalPhase: "",
@@ -578,7 +594,18 @@ function Index(props) {
       else if (betaValue > 1) validationErrors.push(`Row ${rowNumber}: endEffectRatioBeta = ${betaValue.toFixed(4)} (exceeds 1)`);
       else if (betaValue < 0) validationErrors.push(`Row ${rowNumber}: endEffectRatioBeta = ${betaValue.toFixed(4)} (cannot be negative)`);
 
-      if (!isNaN(alphaValue) && !isNaN(betaValue)) { alphaTotal += alphaValue; betaTotal += betaValue; rows.push(rowData); }
+      if (!isNaN(alphaValue) && !isNaN(betaValue)) {
+        alphaTotal += alphaValue;
+        betaTotal += betaValue;
+        // Auto-compute RPN if severity, occurrence, detection are present in Excel
+        const s = parseFloat(rowData.severity);
+        const o = parseFloat(rowData.occurrence);
+        const d = parseFloat(rowData.detection);
+        if (!isNaN(s) && !isNaN(o) && !isNaN(d)) {
+          rowData.rpn = s * o * d;
+        }
+        rows.push(rowData);
+      }
     });
 
     if (isBulkUpload) {
@@ -900,6 +927,7 @@ function Index(props) {
         required={required}
         rowDraftRef={rowDraftRef}
         markFieldChange={markFieldChange}
+        computeAndMarkRpn={computeAndMarkRpn}
         allSepareteData={allSepareteData}
         flattenedConnect={flattenedConnect}
         getConnectedValuesForField={getConnectedValuesForField}
@@ -956,6 +984,31 @@ function Index(props) {
     createSmartSelectField("serviceDisruptionTime", "Service Disruption Time (minutes)"),
     createSmartSelectField("frequency", "Frequency"),
     createSmartSelectField("severity", "Severity"),
+    createSmartSelectField("occurrence", "Occurrence (1–10)"),
+    createSmartSelectField("detection", "Detection (1–10)"),
+    {
+      title: "RPN (S×O×D)",
+      field: "rpn",
+      editable: "never",
+      render: (rowData) => {
+        const s = parseFloat(rowData?.severity);
+        const o = parseFloat(rowData?.occurrence);
+        const d = parseFloat(rowData?.detection);
+        const rpn = (!isNaN(s) && !isNaN(o) && !isNaN(d)) ? s * o * d : null;
+        return (
+          <span style={{
+            display: "block",
+            textAlign: "center",
+            fontWeight: "bold",
+            color: rpn > 200 ? "#dc2626" : rpn > 100 ? "#f59e0b" : "#16a34a",
+          }}>
+            {rpn != null ? rpn : "—"}
+          </span>
+        );
+      },
+      cellStyle: { textAlign: "center", minWidth: 130, backgroundColor: "#fff8e1" },
+      headerStyle: { textAlign: "center", minWidth: 130 },
+    },
     createSmartSelectField("riskIndex", "Risk Index"),
     cmColumn,
     createSmartSelectField("detectableMeansDuringOperation", "Detectable Means during operation"),
@@ -1060,7 +1113,11 @@ function Index(props) {
       endEffect: values.endEffect, endEffectRatioBeta: values?.endEffectRatioBeta || 0,
       safetyImpact: values.safetyImpact, referenceHazardId: values.referenceHazardId,
       realibilityImpact: values.realibilityImpact, serviceDisruptionTime: values.serviceDisruptionTime,
-      frequency: values.frequency, severity: values.severity, riskIndex: values.riskIndex,
+      frequency: values.frequency, severity: values.severity,
+      occurrence: values.occurrence ? Number(values.occurrence) : undefined,
+      detection: values.detection ? Number(values.detection) : undefined,
+      rpn: values.rpn ? Number(values.rpn) : undefined,
+      riskIndex: values.riskIndex,
       designControl: values.designControl, maintenanceControl: values.maintenanceControl,
       exportConstraints: values.exportConstraints,
       immediteActionDuringOperationalPhase: values.immediteActionDuringOperationalPhase,
@@ -1137,33 +1194,67 @@ function Index(props) {
             <div style={{ width: "100%", marginRight: "20px", position: "relative", zIndex: 999 }}>
               <Dropdown value={projectId} productId={productId} data={treeTableData} onChange={handleDropdownChange} />
             </div>
-            <div style={{ display: "flex", justifyContent: "flex-end", alignItems: "center", marginTop: "8px", height: "40px" }}>
-              <Tooltip placement="right" title="Import">
-                <div style={{ marginRight: "8px" }}>
+            <div style={{ display: "flex", justifyContent: "flex-end", alignItems: "center", marginTop: "8px", height: "40px", gap: "8px" }}>
+
+              {/* ── Bulk Import ── */}
+              <Tooltip placement="right" title="Bulk Import (Excel) — Upload .xlsx or .xls file">
+                <div>
                   {canWrite ? (
                     <>
-                      <label htmlFor="file-input" className="import-export-btn" style={{ cursor: "pointer" }}>
-                        <FontAwesomeIcon icon={faFileDownload} style={{ width: "15px" }} />
+                      <label
+                        htmlFor="file-input"
+                        style={{
+                          display: "inline-flex",
+                          alignItems: "center",
+                          gap: "6px",
+                          cursor: "pointer",
+                          padding: "6px 12px",
+                          borderRadius: "6px",
+                          background: "#1d5460",
+                          color: "#fff",
+                          fontSize: "12px",
+                          fontWeight: 600,
+                          letterSpacing: "0.02em",
+                          border: "none",
+                          whiteSpace: "nowrap",
+                          userSelect: "none",
+                          transition: "background 0.15s",
+                        }}
+                        onMouseEnter={e => e.currentTarget.style.background = "#153d48"}
+                        onMouseLeave={e => e.currentTarget.style.background = "#1d5460"}
+                      >
+                        <FontAwesomeIcon icon={faFileArrowUp} style={{ width: "13px" }} />
+                        Bulk Import
                       </label>
                       <input type="file" className="input-fields" id="file-input" onChange={importExcel} style={{ display: "none" }} />
                     </>
                   ) : (
-                    <div className="import-export-btn" style={{ cursor: "not-allowed", opacity: 0.5 }}>
-                      <FontAwesomeIcon icon={faFileDownload} style={{ width: "15px" }} />
+                    <div style={{
+                      display: "inline-flex", alignItems: "center", gap: "6px",
+                      padding: "6px 12px", borderRadius: "6px",
+                      background: "#1d5460", color: "#fff",
+                      fontSize: "12px", fontWeight: 600,
+                      opacity: 0.4, cursor: "not-allowed", whiteSpace: "nowrap",
+                    }}>
+                      <FontAwesomeIcon icon={faFileArrowUp} style={{ width: "13px" }} />
+                      Bulk Import
                     </div>
                   )}
                 </div>
               </Tooltip>
-              <Tooltip placement="left" title="Export">
+
+              {/* ── Export ── */}
+              <Tooltip placement="left" title="Export to Excel">
                 <button
                   className="import-export-btn"
-                  style={{ marginTop: '-2px', cursor: canWrite ? "pointer" : "not-allowed", opacity: canWrite ? 1 : 0.5 }}
+                  style={{ cursor: canWrite ? "pointer" : "not-allowed", opacity: canWrite ? 1 : 0.5 }}
                   onClick={canWrite ? () => DownloadExcel() : undefined}
                   disabled={!canWrite}
                 >
-                  <FontAwesomeIcon icon={faFileUpload} />
+                  <FontAwesomeIcon icon={faFileArrowDown} />
                 </button>
               </Tooltip>
+
             </div>
           </div>
 
