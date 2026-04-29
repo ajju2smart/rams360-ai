@@ -1,19 +1,46 @@
-npm install -g heroku
+# RAMS360 — LOCAL DOCKER RUN GUIDE
+# All deployment is Docker-only. No Heroku. No Vercel.
+# ─────────────────────────────────────────────────────
 
-heroku --version
+# PREREQUISITES (run once on new machine):
+#   provision_host.bat  →  installs Docker Desktop + MongoDB Tools
 
-heroku login -i
+# ─────────────────────────────────────────────────────
+# ONE-CLICK START (recommended):
+# ─────────────────────────────────────────────────────
+#   From the Rams360_UserGuide root folder:
+#   Double-click: start_rams.bat
+#
+#   This runs: docker-compose up -d
+#   Then opens: http://localhost:3000
 
-heroku login 
+# ─────────────────────────────────────────────────────
+# MANUAL DOCKER COMMANDS:
+# ─────────────────────────────────────────────────────
 
-//react
-heroku git:remote -a rams360techdev   
+# Start all services (DB + Backend + Frontend):
+docker-compose up -d
 
-git push heroku main
+# Stop all services:
+docker-compose stop
 
+# Rebuild after code changes (e.g. after git pull):
+docker-compose up -d --build
 
-//ssl enabling
+# View frontend logs:
+docker logs rams-frontend -f
 
-heroku certs:auto:enable
-heroku certs:auto
+# ─────────────────────────────────────────────────────
+# SERVICE URLS (local only):
+# ─────────────────────────────────────────────────────
+#   Frontend:  http://localhost:3000
+#   Backend:   http://localhost:8000
+#   MongoDB:   mongodb://localhost:27017/rams360_local
+#              (inside container: mongodb://db:27017/rams360_local)
 
+# ─────────────────────────────────────────────────────
+# DATA SYNC (one-time clone from cloud to local):
+# ─────────────────────────────────────────────────────
+#   Double-click: sync_data.bat
+#   This clones the live DB into your local Docker container.
+#   Run ONCE after first setup, or when you need fresh data.

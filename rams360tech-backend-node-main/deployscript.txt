@@ -1,156 +1,49 @@
-npm install -g heroku
+# RAMS360 — LOCAL DOCKER RUN GUIDE
+# All deployment is Docker-only. No Heroku. No Vercel.
+# ─────────────────────────────────────────────────────
 
-heroku --version
+# PREREQUISITES (run once on new machine):
+#   provision_host.bat  →  installs Docker Desktop + MongoDB Tools
 
-heroku login -i
+# ─────────────────────────────────────────────────────
+# ONE-CLICK START (recommended):
+# ─────────────────────────────────────────────────────
+#   From the Rams360_UserGuide root folder:
+#   Double-click: start_rams.bat
+#
+#   This runs: docker-compose up -d
+#   Then opens: http://localhost:3000
 
-heroku login 
+# ─────────────────────────────────────────────────────
+# MANUAL DOCKER COMMANDS:
+# ─────────────────────────────────────────────────────
 
+# Start all services (DB + Backend + Frontend):
+docker-compose up -d
 
-//react
-heroku git:remote -a rams360techdev   
+# Stop all services:
+docker-compose stop
 
-//node
-heroku git:remote -a rams360server
+# Rebuild after code changes:
+docker-compose up -d --build
 
-git push heroku main
+# View backend logs:
+docker logs rams-backend -f
 
+# View DB logs:
+docker logs rams-db -f
 
-//ssl enabling
+# ─────────────────────────────────────────────────────
+# SERVICE URLS (local only):
+# ─────────────────────────────────────────────────────
+#   Frontend:  http://localhost:3000
+#   Backend:   http://localhost:8000
+#   MongoDB:   mongodb://localhost:27017/rams360_local
+#              (inside container: mongodb://db:27017/rams360_local)
 
-heroku certs:auto:enable
-heroku certs:auto
-
-
-
-
-export async function createPbsRecordFromImportFile(req, res, next) {
-  try {
-    const { rowData, projectId, companyId } = req.body;
-
-    if (!rowData || !Array.isArray(rowData)) {
-      return res.status(400).json({ error: "rowData is required and must be an array" });
-    }
-
-    // 1. Sort data numerically (1, 1.1, 1.2, 2, etc.)
-    const sortedRowData = [...rowData].sort((a, b) => {
-      const aParts = String(a.indexCount).split('.').map(Number);
-      const bParts = String(b.indexCount).split('.').map(Number);
-      for (let i = 0; i < Math.max(aParts.length, bParts.length); i++) {
-        if (aParts[i] !== bParts[i]) return (aParts[i] || 0) - (bParts[i] || 0);
-      }
-      return 0;
-    });
-
-    // 2. Prepare Product Documents for Bulk Insert
-    const productDocs = sortedRowData.map(data => ({
-      projectId,
-      companyId,
-      productName: data.productName,
-      category: data.category,
-      reference: data.reference,
-      partType: data.partType,
-      partNumber: data.partNumber,
-      quantity: data.quantity,
-      environment: data.environment,
-      temperature: data.temperature,
-      status: ACTIVE_TREE,
-    }));
-
-    // 3. Insert all products in one batch and Find/Create Tree Structure in parallel
-    const [createdProducts, treeStructure] = await Promise.all([
-      product.insertMany(productDocs),
-      productTreeStructure.findOneAndUpdate(
-        { projectId, companyId },
-        { $setOnInsert: { projectId, companyId, productId: null, treeStructure: {} } },
-        { upsert: true, new: true }
-      )
-    ]);
-
-    const treeStructureId = treeStructure._id.toString();
-    const nodesMap = new Map();
-
-    // 4. Map created IDs back to the original row data structure in memory
-    createdProducts.forEach((doc, index) => {
-      const originalData = sortedRowData[index];
-      const node = {
-        id: doc._id,
-        indexCount: String(originalData.indexCount),
-        type: "Product",
-
-        // Product master fields
-        productName: doc.productName,
-        category: doc.category,
-        reference: doc.reference,
-        partType: doc.partType,
-        partNumber: doc.partNumber,
-        quantity: doc.quantity,
-        environment: doc.environment,
-        temperature: doc.temperature,
-
-        // Reliability fields
-        fr: originalData.fr,
-        mttr: originalData.mttr,
-        mct: originalData.mct,
-        mlh: originalData.mlh,
-
-        status: ACTIVE_TREE,
-        parentId: treeStructureId,
-        productId: null,
-        children: [],
-      };
-
-      nodesMap.set(node.indexCount, node);
-    });
-
-    // 5. Build Hierarchy (Parent-Child Product Relationships)
-    const rootNodes = [];
-    for (const [indexCount, node] of nodesMap) {
-      const parts = indexCount.split('.');
-      if (parts.length > 1) {
-        const parentIndex = parts.slice(0, -1).join('.');
-        const parentNode = nodesMap.get(parentIndex);
-        if (parentNode) {
-          node.productId = parentNode.id; // Child points to Parent Product ID
-          parentNode.children.push(node);
-        }
-      } else {
-        rootNodes.push(node);
-      }
-    }
-
-    if (rootNodes.length === 0) {
-      return res.status(400).json({ error: "No top-level products found" });
-    }
-
-    // 6. Final Tree Object Construction
-    const finalStructure = {
-      id: treeStructureId,
-      type: "RootGroup",
-      children: rootNodes,
-    };
-
-    // 7. Update Tree and Products in parallel
-    await Promise.all([
-      productTreeStructure.findByIdAndUpdate(treeStructureId, {
-        $set: { treeStructure: finalStructure }
-      }),
-      product.updateMany(
-        { _id: { $in: createdProducts.map(p => p._id) } },
-        { $set: { parentId: treeStructureId, productTreeStructureId: treeStructureId } }
-      )
-    ]);
-
-    res.status(201).json({
-      message: "Products imported successfully",
-      treeStructureId: treeStructureId
-    });
-
-  } catch (error) {
-    console.error("Error in createPbsRecordFromImportFile:", error);
-    next(error);
-  }
-}
-
-
-
+# ─────────────────────────────────────────────────────
+# DATA SYNC (one-time clone from cloud to local):
+# ─────────────────────────────────────────────────────
+#   Double-click: sync_data.bat
+#   This clones the live DB into your local Docker container.
+#   Run ONCE after first setup, or when you need fresh data.
