@@ -3,6 +3,7 @@ import { Switch, Route, Redirect } from "react-router-dom";
 import SideBar from "../../components/SideBar";
 import HeaderNavBar from "../../components/HeaderNavBar";
 import RbdIndex from "../../components/HeaderNavBar/RbdIndex";
+import ChatbotWidget from "../../components/Chatbot";
 import "../../css/SideBar.scss";
 import { useAuth } from "../../context/AuthContext";
 
@@ -111,6 +112,9 @@ const DefaultLayoutWrapper = ({ component: Component, selectedComponent, name, .
               <Component {...props} />
             </Suspense>
           </div>
+
+          {/* AI Chatbot — floating widget visible on all authenticated pages */}
+          <ChatbotWidget />
         </div>
       </div>
     </div>

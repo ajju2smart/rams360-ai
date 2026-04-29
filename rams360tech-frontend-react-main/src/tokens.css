@@ -1,0 +1,117 @@
+/* ═══════════════════════════════════════════════════════════════════════════
+   RAMS360 Design Tokens — Single Source of Truth
+   Import this FIRST in index.css
+   DO NOT define colors, spacing, shadows, or radii elsewhere
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+:root {
+  /* ─── Brand Colors ─── */
+  --color-brand:          #1d5460;
+  --color-brand-light:    #2a7a8c;
+  --color-brand-dark:     #153d48;
+  --color-brand-pale:     #e8f4f6;
+
+  /* ─── Accent (orange) ─── */
+  --color-accent:         #e17f2f;
+  --color-accent-light:   #f5a560;
+  --color-accent-dark:    #c0651e;
+
+  /* ─── Semantic: Success ─── */
+  --color-success:        #16a34a;
+  --color-success-light:  #86efac;
+  --color-success-bg:     #f0fdf4;
+
+  /* ─── Semantic: Warning ─── */
+  --color-warning:        #f59e0b;
+  --color-warning-light:  #fcd34d;
+  --color-warning-bg:     #fffbeb;
+
+  /* ─── Semantic: Danger ─── */
+  --color-danger:         #dc2626;
+  --color-danger-light:   #fca5a5;
+  --color-danger-bg:      #fef2f2;
+
+  /* ─── Semantic: Info ─── */
+  --color-info:           #3b82f6;
+  --color-info-light:     #93c5fd;
+  --color-info-bg:        #eff6ff;
+
+  /* ─── Neutrals ─── */
+  --color-text:           #0f172a;
+  --color-text-secondary: #475569;
+  --color-text-muted:     #64748b;
+
+  --color-surface:        #ffffff;
+  --color-surface-raised: #f8fafc;
+  --color-surface-hover:  #f1f5f9;
+
+  --color-border:         #e2e8f0;
+  --color-border-focus:   #1d5460;
+
+  /* ─── Spacing Scale (4px base) ─── */
+  --space-1:   4px;
+  --space-2:   8px;
+  --space-3:  12px;
+  --space-4:  16px;
+  --space-5:  20px;
+  --space-6:  24px;
+  --space-8:  32px;
+  --space-10: 40px;
+  --space-12: 48px;
+  --space-16: 64px;
+
+  /* ─── Typography ─── */
+  --font-family:     Arial, Helvetica, sans-serif;
+  --font-size-xs:   11px;
+  --font-size-sm:   12px;
+  --font-size-base: 14px;
+  --font-size-md:   15px;
+  --font-size-lg:   16px;
+  --font-size-xl:   18px;
+  --font-size-2xl:  20px;
+  --font-size-3xl:  24px;
+
+  --font-weight-normal:  400;
+  --font-weight-medium:  500;
+  --font-weight-semi:    600;
+  --font-weight-bold:    700;
+
+  --line-height-tight:   1.3;
+  --line-height-normal:  1.5;
+  --line-height-relaxed: 1.7;
+
+  /* ─── Border Radius ─── */
+  --radius-sm:   4px;
+  --radius-md:   6px;
+  --radius-lg:   8px;
+  --radius-xl:   12px;
+  --radius-full: 9999px;
+
+  /* ─── Shadows ─── */
+  --shadow-xs:  0 1px 2px rgba(0, 0, 0, 0.05);
+  --shadow-sm:  0 1px 4px rgba(0, 0, 0, 0.08);
+  --shadow-md:  0 4px 12px rgba(0, 0, 0, 0.10);
+  --shadow-lg:  0 8px 24px rgba(0, 0, 0, 0.12);
+  --shadow-xl:  0 16px 40px rgba(0, 0, 0, 0.14);
+
+  /* ─── Layout ─── */
+  --sidebar-width-expanded:  250px;
+  --sidebar-width-collapsed:  64px;
+  --header-height:            60px;
+  --page-padding-x:           24px;
+  --page-padding-y:           24px;
+
+  /* ─── Transitions ─── */
+  --transition-fast:   0.15s ease;
+  --transition-normal: 0.25s ease;
+  --transition-slow:   0.4s ease;
+
+  /* ─── Z-index scale ─── */
+  --z-base:    1;
+  --z-dropdown: 100;
+  --z-sticky:   200;
+  --z-overlay:  500;
+  --z-modal:    600;
+  --z-toast:    900;
+  --z-chatbot: 1200;
+}

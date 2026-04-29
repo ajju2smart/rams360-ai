@@ -1,0 +1,182 @@
+/* ═══════════════════════════════════════════════════════════════════════════
+   RAMS360 Shared Layout Utilities
+   Import once per page that needs standard page chrome.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+/* ─── Page Wrapper ─── */
+.page-wrapper {
+  padding: var(--page-padding-y, 24px) var(--page-padding-x, 24px);
+  min-height: calc(100vh - var(--header-height, 60px));
+  background: var(--color-surface-raised, #f8fafc);
+}
+
+/* ─── Section Header Bar ─── */
+.section-header {
+  background: var(--color-brand, #1d5460);
+  color: #fff;
+  padding: 12px 20px;
+  border-radius: var(--radius-lg, 8px) var(--radius-lg, 8px) 0 0;
+  font-size: var(--font-size-md, 15px);
+  font-weight: var(--font-weight-semi, 600);
+  letter-spacing: 0.01em;
+  margin-bottom: 0;
+}
+
+/* ─── Content Card ─── */
+.content-card {
+  background: var(--color-surface, #fff);
+  border: 1px solid var(--color-border, #e2e8f0);
+  border-radius: var(--radius-lg, 8px);
+  box-shadow: var(--shadow-sm);
+  padding: var(--space-6, 24px);
+  margin-bottom: var(--space-6, 24px);
+}
+
+.content-card--flush {
+  padding: 0;
+  overflow: hidden;
+}
+
+/* ─── Page Title Row ─── */
+.page-title-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-4, 16px);
+  margin-bottom: var(--space-6, 24px);
+  flex-wrap: wrap;
+}
+
+.page-title {
+  font-size: var(--font-size-xl, 18px);
+  font-weight: var(--font-weight-semi, 600);
+  color: var(--color-text, #0f172a);
+  margin: 0;
+}
+
+.page-subtitle {
+  font-size: var(--font-size-sm, 12px);
+  color: var(--color-text-muted, #64748b);
+  margin: 2px 0 0;
+}
+
+/* ─── Action Button Row ─── */
+.action-row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3, 12px);
+  flex-wrap: wrap;
+  margin-bottom: var(--space-5, 20px);
+}
+
+/* ─── Form Grid ─── */
+.form-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: var(--space-5, 20px) var(--space-6, 24px);
+}
+
+.form-grid--2col {
+  grid-template-columns: 1fr 1fr;
+}
+
+.form-grid--3col {
+  grid-template-columns: 1fr 1fr 1fr;
+}
+
+@media (max-width: 768px) {
+  .form-grid--2col,
+  .form-grid--3col {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ─── Form Field ─── */
+.form-field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1, 4px);
+}
+
+.form-label {
+  font-size: var(--font-size-sm, 12px);
+  font-weight: var(--font-weight-medium, 500);
+  color: var(--color-text-secondary, #475569);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.form-label--required::after {
+  content: " *";
+  color: var(--color-danger, #dc2626);
+}
+
+/* ─── Status Badges ─── */
+.badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 3px 9px;
+  border-radius: var(--radius-full, 9999px);
+  font-size: var(--font-size-xs, 11px);
+  font-weight: var(--font-weight-semi, 600);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  white-space: nowrap;
+}
+
+.badge--success {
+  background: var(--color-success-bg, #f0fdf4);
+  color: var(--color-success, #16a34a);
+}
+
+.badge--warning {
+  background: var(--color-warning-bg, #fffbeb);
+  color: var(--color-warning, #f59e0b);
+}
+
+.badge--danger {
+  background: var(--color-danger-bg, #fef2f2);
+  color: var(--color-danger, #dc2626);
+}
+
+.badge--info {
+  background: var(--color-info-bg, #eff6ff);
+  color: var(--color-info, #3b82f6);
+}
+
+.badge--neutral {
+  background: var(--color-surface-hover, #f1f5f9);
+  color: var(--color-text-secondary, #475569);
+}
+
+/* ─── Divider ─── */
+.section-divider {
+  border: none;
+  border-top: 1px solid var(--color-border, #e2e8f0);
+  margin: var(--space-6, 24px) 0;
+}
+
+/* ─── Empty State ─── */
+.empty-state {
+  text-align: center;
+  padding: var(--space-16, 64px) var(--space-8, 32px);
+  color: var(--color-text-muted, #64748b);
+}
+
+.empty-state__title {
+  font-size: var(--font-size-lg, 16px);
+  font-weight: var(--font-weight-semi, 600);
+  color: var(--color-text-secondary, #475569);
+  margin-bottom: var(--space-2, 8px);
+}
+
+.empty-state__desc {
+  font-size: var(--font-size-sm, 12px);
+}
+
+/* ─── Scrollable Table Container ─── */
+.table-scroll {
+  overflow-x: auto;
+  border-radius: var(--radius-lg, 8px);
+  border: 1px solid var(--color-border, #e2e8f0);
+}

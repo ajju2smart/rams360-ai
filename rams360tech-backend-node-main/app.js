@@ -28,6 +28,7 @@ import uploadFile from "./routes/uploadFile.js";
 import libraryRoutes from "./routes/libraryRoutes.js";
 import reportRoutes from "./routes/reportRoutes.js";
 import EnquiryRoutes from "./routes/EnquiryRoutes.js";
+import chatbotRoutes from "./routes/chatbotRoutes.js";
 
 
 const app = express();
@@ -115,6 +116,7 @@ app.use("/api/v1/FTA", FTAtreeRoutes);
 app.use("/api/v1/FTAjson", uploadFile);
 app.use("/api/v1/library", libraryRoutes);
 app.use("/api/v1/reports", reportRoutes);
+app.use("/api/v1/chatbot", chatbotRoutes);
 // handle undefined Routes
 app.use("*", (req, res, next) => {
   const err = new AppError(404, "fail", "undefined route");
