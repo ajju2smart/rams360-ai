@@ -202,7 +202,7 @@ function Index(props) {
 
     if (!validExtensions.includes(fileExtension)) {
       toast.error("Please upload a valid Excel file (either .xlsx or .xls)!", {
-        position: toast.POSITION.TOP_RIGHT,
+        position: "top-right",
       });
       return;
     }

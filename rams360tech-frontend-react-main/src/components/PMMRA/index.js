@@ -688,7 +688,7 @@ export default function PMMRA(props) {
 
     if (!validExtensions.includes(fileExtension)) {
       toast.error("Please upload a valid Excel file (either .xlsx or .xls)!", {
-        position: toast.POSITION.TOP_RIGHT,
+        position: "top-right",
       });
       return;
     }
@@ -912,11 +912,11 @@ export default function PMMRA(props) {
         setImportExcelData(mappedData);
 
         toast.success("Excel data imported successfully!", {
-          position: toast.POSITION.TOP_RIGHT,
+          position: "top-right",
         });
       } else {
         toast.error("No Data Found In Excel Sheet", {
-          position: toast.POSITION.TOP_RIGHT,
+          position: "top-right",
         });
       }
     };
@@ -1096,7 +1096,7 @@ export default function PMMRA(props) {
       const fileName = `${productName}_PMMRA.xlsx`;
       XLSX.writeFile(wb, fileName);
       toast.success("PMMRA Data Exported Successfully!", {
-        position: toast.POSITION.TOP_RIGHT,
+        position: "top-right",
         autoClose: 3000,
       });
     } else {

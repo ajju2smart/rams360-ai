@@ -971,7 +971,7 @@ const hasWritePermission = () => {
               data={connectData}
               columns={columns}
               icons={tableIcons}
-              style={{ marginTop: "30px" }}
+              style={{ marginTop: "0px" }}
               actions={
                 hasWritePermission()
                   ? [

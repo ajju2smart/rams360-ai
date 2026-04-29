@@ -201,13 +201,15 @@ export default function ProjectList(props, list) {
 
 
   return (
-    <div className="mx-4 mb-5 " style={{ marginTop: "90px" }}>
+    <div className="user-workspace-container mb-5">
       {isLoading ? (
         <Loader />
       ) : (
         <div>
-          <div className="mttr-sec ">
-            <p className=" mb-0 para-tag">Projects</p>
+          <div className="user-breadcrumb-bar">
+            <span className="user-breadcrumb-path">Admin</span>
+            <span className="user-breadcrumb-sep"> / </span>
+            <span className="user-breadcrumb-current">Projects</span>
           </div>
 
           <div className="mt-4 mb-3">
@@ -265,7 +267,7 @@ export default function ProjectList(props, list) {
                     <td className="viewRow">{list?.projectNumber}</td>
                     <td className="viewRow">{list?.projectName}</td>
 
-                    {role === "admin" || (list.isOwner === true && list.createdBy === userId) ? (
+                    {role === "admin" || (list?.isOwner === true && list?.createdBy === userId) ? (
                       <td className="d-flex justify-content-center ">
                         <Dropdown>
                           <Dropdown.Toggle className="dropdown">
@@ -592,13 +594,4 @@ export default function ProjectList(props, list) {
               </div>
               <Modal.Footer className=" d-flex justify-content-center success-message mt-3 mb-4">
                 <div>
-                  <h4 className="text-center">Project Deleted Successfully</h4>
-                </div>
-              </Modal.Footer>
-            </Modal>
-          </div>
-        </div>
-      )}
-    </div>
-  );
-}
+                  <h4 className="text-center">Project Deleted Successfully</h4

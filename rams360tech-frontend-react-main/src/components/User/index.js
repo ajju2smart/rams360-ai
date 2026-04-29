@@ -293,9 +293,11 @@ function User() {
   }, []);
 
   return (
-    <div className="mx-4" style={{ marginTop: "90px" }}>
-      <div className="mttr-sec ">
-        <p className=" mb-0 para-tag">User Informations</p>
+    <div className="user-workspace-container">
+      <div className="user-breadcrumb-bar">
+        <span className="user-breadcrumb-path">Admin</span>
+        <span className="user-breadcrumb-sep"> / </span>
+        <span className="user-breadcrumb-current">User Management</span>
       </div>
       <div className="mt-4 mb-2">
         <div style={{ display: "inline-flex", alignItems: "center", gap: "10px" }}>

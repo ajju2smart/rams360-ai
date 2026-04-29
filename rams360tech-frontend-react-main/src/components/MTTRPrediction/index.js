@@ -312,11 +312,11 @@ const MTTRPrediction = (props, active) => {
 
         if (errorCount === 0) {
           toast.success(`All ${successCount} records imported successfully!`, {
-            position: toast.POSITION.TOP_RIGHT,
+            position: "top-right",
           });
         } else {
           toast.warning(`${successCount} records saved, ${errorCount} failed.`, {
-            position: toast.POSITION.TOP_RIGHT,
+            position: "top-right",
           });
         }
       } else {
