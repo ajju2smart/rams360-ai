@@ -594,4 +594,13 @@ export default function ProjectList(props, list) {
               </div>
               <Modal.Footer className=" d-flex justify-content-center success-message mt-3 mb-4">
                 <div>
-                  <h4 className="text-center">Project Deleted Successfully</h4
+                  <h4 className="text-center">Project Deleted Successfully</h4>
+                </div>
+              </Modal.Footer>
+            </Modal>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
