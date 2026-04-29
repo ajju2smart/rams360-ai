@@ -26,7 +26,7 @@
 
 /* Keep your oklch theme mapping */
 :root {
-  --background-color: #ffffff;
+  --background-color: var(--color-surface);
   --primary-color: oklch(45.12% 0.267 var(--user-theme-color-hue));
   --secondary-color: oklch(94.45% 0.03 268.81);
   --success-color: oklch(41.53% 0.06 214.79);
