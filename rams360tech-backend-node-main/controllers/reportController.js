@@ -7,6 +7,20 @@ import SparePartsAnalysis from "../models/sparePartsAnalysisModel.js";
 import FMECA from "../models/FMECAModel.js";
 import SAFETY from "../models/safetyModel.js";
 
+// Shared iterative tree collector — replaces all inline getNodeTreeProduct
+function collectActiveNodes(children) {
+  const stack = Array.isArray(children) ? [...children] : [];
+  const result = [];
+  while (stack.length > 0) {
+    const node = stack.pop();
+    if (node?.status === "active") result.push(node);
+    if (Array.isArray(node?.children) && node.children.length > 0) {
+      stack.push(...node.children);
+    }
+  }
+  return result;
+}
+
 export async function getPbsReport(req, res, next) {
   try {
     const data = req.query;
@@ -269,420 +283,84 @@ export async function getPbsReport(req, res, next) {
 
 export async function getReliabilityReport(req, res, next) {
   try {
-    const data = req.query;
-    const reportType = data.reportType;
+    const { projectId, reportType, hierarchyType: hType } = req.query;
 
-    if (reportType == 0) {
-      // Fetch product tree structure
-      const treeStructure = await productTreeStructure
-        .find({ projectId: data.projectId })
-        .populate("projectId")
-        .populate("companyId");
+    const treeStructure = await productTreeStructure
+      .find({ projectId })
+      .populate("projectId")
+      .populate("companyId");
 
-      const allProductData = [];
+    let allProductData = [];
 
-      // Recursively get all active products from the tree structure
-      const getNodeTreeProduct = (childNode) => {
-        if (childNode != null) {
-          for (let i = 0; i < childNode.length; i++) {
-            if (childNode[i].status == "active") {
-              allProductData.push(childNode[i]);
-            }
-            getNodeTreeProduct(childNode[i].children);
-          }
-        }
-      };
+    treeStructure.forEach((list) => {
+      const root = list.treeStructure;
+      if (root.status === "active") allProductData.push(root);
+      allProductData.push(...collectActiveNodes(root.children));
+    });
 
-      treeStructure.forEach((list) => {
-        const addParentProduct = list.treeStructure;
-        if (addParentProduct.status == "active") {
-          allProductData.push(addParentProduct);
-        }
-        const childNode = addParentProduct.children;
-        getNodeTreeProduct(childNode);
-      });
-
-      const sampleDataPromises = allProductData.map(async (list) => {
-        const result = await FailureRatePrediction.findOne({
-          projectId: data.projectId,
-          productId: list.id, // Add productId filter
-        }).populate("productId");
-
-        if (!result) {
-          return {
-            productId: list,
-            failureRatePrediction: null,
-          };
-        }
-
-        return {
-          productId: list,
-          failureRatePrediction: result,
-        };
-      });
-
-      const sampleData = await Promise.all(sampleDataPromises);
-
-      // Flatten the sampleData array if it contains nested arrays
-      const flattenedSampleData = sampleData.flat();
-
-      res.status(201).json({
-        message: "Get Product List Tree Structure",
-        data: flattenedSampleData,
-      });
-    } else if (reportType == 1) {
-      const treeStructure = await productTreeStructure
-        .find({ projectId: data.projectId })
-        .populate("projectId")
-        .populate("companyId");
-      const allProductData = [];
-      treeStructure.map((list) => {
-        const addParentProduct = list.treeStructure;
-        if (addParentProduct.status == "active") {
-          allProductData.push(addParentProduct);
-        }
-        const childNode = addParentProduct.children;
-        getNodeTreeProduct(childNode);
-        async function getNodeTreeProduct(childNode) {
-          if (childNode != null) {
-            for (let i = 0; i < childNode.length; i++) {
-              if (childNode[i].status == "active") {
-                allProductData.push(childNode[i]);
-              }
-              getNodeTreeProduct(childNode[i].children);
-            }
-          }
-        }
-      });
-
-      const sampleDataPromises = allProductData.map(async (list) => {
-        const result = await FailureRatePrediction.findOne({
-          projectId: data.projectId,
-          productId: list.id,
-        }).populate("productId");
-
-        // If no results found, return an object with productId and null values
-        if (!result) {
-          return {
-            productId: list,
-            failureRatePrediction: null,
-          };
-        }
-
-        // If results found, return them
-        return {
-          productId: list,
-          failureRatePrediction: result,
-        };
-      });
-
-      const sampleData = await Promise.all(sampleDataPromises);
-
-      // Flatten the sampleData array if it contains nested arrays
-      const flattenedSampleData = sampleData.flat();
-
-      function filterDataByHierarchyType(flattenedSampleData, hierarchyType) {
-        return new Promise((resolve, reject) => {
-          let filteredData = [];
-          try {
-            if (hierarchyType == 1) {
-              filteredData = flattenedSampleData.filter((item) => {
-                const indexCountStr = String(item.productId.indexCount);
-                return !indexCountStr.includes(".");
-              });
-            } else if (hierarchyType) {
-              filteredData = flattenedSampleData.filter((item) => {
-                const indexCountStr = String(item.productId.indexCount);
-                return indexCountStr.split(".").length == hierarchyType;
-              });
-            }
-            resolve(filteredData);
-          } catch (error) {
-            reject(error);
-          }
-        });
-      }
-
-      const hierarchyType = parseInt(data.hierarchyType);
-
-      try {
-        const filteredData = await filterDataByHierarchyType(
-          flattenedSampleData,
-          hierarchyType
-        );
-
-        res.status(201).json({
-          message: "Get Product List Tree Structure",
-          data: filteredData,
-        });
-      } catch (error) {
-        res.status(500).json({
-          message: "Error filtering data",
-          error: error.message,
-        });
-      }
-    } else if (reportType == 2) {
-      const treeStructure = await productTreeStructure
-        .find({ projectId: data.projectId })
-        .populate("projectId")
-        .populate("companyId");
-      const allProductData = [];
-      treeStructure.map((list) => {
-        const addParentProduct = list.treeStructure;
-        if (
-          addParentProduct.status == "active" &&
-          addParentProduct.category == "Assembly"
-        ) {
-          allProductData.push(addParentProduct);
-        }
-        const childNode = addParentProduct.children;
-        getNodeTreeProduct(childNode);
-        async function getNodeTreeProduct(childNode) {
-          if (childNode != null) {
-            for (let i = 0; i < childNode.length; i++) {
-              if (
-                childNode[i].status == "active" &&
-                childNode[i].category == "Assembly"
-              ) {
-                allProductData.push(childNode[i]);
-              }
-              getNodeTreeProduct(childNode[i].children);
-            }
-          }
-        }
-      });
-      const sampleDataPromises = allProductData.map(async (list) => {
-        const result = await FailureRatePrediction.findOne({
-          projectId: data.projectId,
-          productId: list.id,
-        }).populate("productId");
-
-        // If no results found, return an object with productId and null values
-        if (!result) {
-          return {
-            productId: list,
-            failureRatePrediction: null,
-          };
-        }
-
-        // If results found, return them
-        return {
-          productId: list,
-          failureRatePrediction: result,
-        };
-      });
-
-      const sampleData = await Promise.all(sampleDataPromises);
-
-      // Flatten the sampleData array if it contains nested arrays
-      const flattenedSampleData = sampleData.flat();
-
-      res.status(201).json({
-        message: "Get Product List Tree Structure",
-        data: flattenedSampleData,
-      });
+    if (reportType == 2) {
+      allProductData = allProductData.filter((p) => p.category === "Assembly");
     } else if (reportType == 3) {
-      const treeStructure = await productTreeStructure
-        .find({ projectId: data.projectId })
-        .populate("projectId")
-        .populate("companyId");
-      const allProductData = [];
-      treeStructure.map((list) => {
-        const addParentProduct = list.treeStructure;
-        if (
-          addParentProduct.status == "active" &&
-          addParentProduct.category == "Electronic"
-        ) {
-          allProductData.push(addParentProduct);
-        }
-        const childNode = addParentProduct.children;
-        getNodeTreeProduct(childNode);
-        async function getNodeTreeProduct(childNode) {
-          if (childNode != null) {
-            for (let i = 0; i < childNode.length; i++) {
-              if (
-                childNode[i].status == "active" &&
-                childNode[i].category == "Electronic"
-              ) {
-                allProductData.push(childNode[i]);
-              }
-              getNodeTreeProduct(childNode[i].children);
-            }
-          }
-        }
-      });
-      const sampleDataPromises = allProductData.map(async (list) => {
-        const result = await FailureRatePrediction.findOne({
-          projectId: data.projectId,
-          productId: list.id,
-        }).populate("productId");
-
-        // If no results found, return an object with productId and null values
-        if (!result) {
-          return {
-            productId: list,
-            failureRatePrediction: null,
-          };
-        }
-
-        // If results found, return them
-        return {
-          productId: list,
-          failureRatePrediction: result,
-        };
-      });
-
-      const sampleData = await Promise.all(sampleDataPromises);
-
-      // Flatten the sampleData array if it contains nested arrays
-      const flattenedSampleData = sampleData.flat();
-
-      res.status(201).json({
-        message: "Get Product List Tree Structure",
-        data: flattenedSampleData,
-      });
+      allProductData = allProductData.filter((p) => p.category === "Electronic");
     } else if (reportType == 4) {
-      const treeStructure = await productTreeStructure
-        .find({ projectId: data.projectId })
-        .populate("projectId")
-        .populate("companyId");
-      const allProductData = [];
-      treeStructure.map((list) => {
-        const addParentProduct = list.treeStructure;
-        if (
-          addParentProduct.status == "active" &&
-          addParentProduct.category == "Mechanical"
-        ) {
-          allProductData.push(addParentProduct);
-        }
-        const childNode = addParentProduct.children;
-        getNodeTreeProduct(childNode);
-        async function getNodeTreeProduct(childNode) {
-          if (childNode != null) {
-            for (let i = 0; i < childNode.length; i++) {
-              if (
-                childNode[i].status == "active" &&
-                childNode[i].category == "Mechanical"
-              ) {
-                allProductData.push(childNode[i]);
-              }
-              getNodeTreeProduct(childNode[i].children);
-            }
-          }
-        }
-      });
-      const sampleDataPromises = allProductData.map(async (list) => {
-        const result = await FailureRatePrediction.findOne({
-          projectId: data.projectId,
-          productId: list.id,
-        }).populate("productId");
-
-        // If no results found, return an object with productId and null values
-        if (!result) {
-          return {
-            productId: list,
-            failureRatePrediction: null,
-          };
-        }
-
-        // If results found, return them
-        return {
-          productId: list,
-          failureRatePrediction: result,
-        };
-      });
-
-      const sampleData = await Promise.all(sampleDataPromises);
-
-      // Flatten the sampleData array if it contains nested arrays
-      const flattenedSampleData = sampleData.flat();
-
-      res.status(201).json({
-        message: "Get Product List Tree Structure",
-        data: flattenedSampleData,
-      });
+      allProductData = allProductData.filter((p) => p.category === "Mechanical");
     } else if (reportType == 5) {
-      const treeStructure = await productTreeStructure
-        .find({ projectId: data.projectId })
-        .populate("projectId")
-        .populate("companyId");
+      allProductData = allProductData.filter(
+        (p) => p.category === "Mechanical" || p.category === "Electronic"
+      );
+    }
 
-      const allProductData = [];
+    const productIds = allProductData.map((p) => p.id);
+    const sampleData = await FailureRatePrediction.find({
+      projectId,
+      productId: { $in: productIds },
+    }).populate("productId");
 
-      treeStructure.map((list) => {
-        const addParentProduct = list.treeStructure;
-        if (
-          (addParentProduct.status == "active" &&
-            addParentProduct.category == "Mechanical") ||
-          addParentProduct.category == "Electronic"
-        ) {
-          allProductData.push(addParentProduct);
-        }
-        const childNode = addParentProduct.children;
-        getNodeTreeProduct(childNode);
+    const sampleDataMap = new Map(
+      sampleData.map((r) => [r.productId?._id?.toString() ?? r.productId?.toString(), r])
+    );
 
-        async function getNodeTreeProduct(childNode) {
-          if (childNode != null) {
-            for (let i = 0; i < childNode.length; i++) {
-              if (
-                (childNode[i].status == "active" &&
-                  childNode[i].category == "Mechanical") ||
-                childNode[i].category == "Electronic"
-              ) {
-                allProductData.push(childNode[i]);
-              }
-              getNodeTreeProduct(childNode[i].children);
-            }
-          }
-        }
+    const flattenedSampleData = allProductData.map((list) => ({
+      productId: list,
+      failureRatePrediction: sampleDataMap.get(list.id.toString()) || null,
+    }));
+
+    if (reportType == 1) {
+      const hierarchyType = parseInt(hType);
+      const filteredData = flattenedSampleData.filter((item) => {
+        const idx = String(item.productId.indexCount);
+        return hierarchyType === 1 ? !idx.includes(".") : idx.split(".").length === hierarchyType;
       });
 
-      const sampleDataPromises = allProductData.map(async (list) => {
-        const result = await FailureRatePrediction.findOne({
-          projectId: data.projectId,
-          productId: list.id,
-        }).populate("productId");
-        // If no results found, return an object with productId and null values
-        if (!result) {
-          return {
-            productId: list,
-            failureRatePrediction: null,
-          };
-        }
-
-        // If results found, return them
-        return {
-          productId: list,
-          failureRatePrediction: result,
-        };
+      return res.status(201).json({
+        message: "Get Product List Tree Structure",
+        data: filteredData,
       });
+    }
 
-      const sampleData = await Promise.all(sampleDataPromises);
-
-      // Flatten the sampleData array if it contains nested arrays
-      const flattenedSampleData = sampleData.flat();
-
-      // Grouping based on partType
+    if (reportType == 5) {
       const groupedData = flattenedSampleData.reduce((acc, product) => {
-        const partType = product.productId.partType || "Undefined"; // Default to 'Undefined' if partType is not specified
-        if (!acc[partType]) {
-          acc[partType] = [];
-        }
+        const partType = product.productId.partType || "Undefined";
+        if (!acc[partType]) acc[partType] = [];
         acc[partType].push(product);
         return acc;
       }, {});
 
-      // Converting grouped data to an array of objects
-      const groupedArray = Object.keys(groupedData).map((key, index) => ({
+      const groupedArray = Object.keys(groupedData).map((key) => ({
         partType: key,
         items: groupedData[key],
       }));
 
-      res.status(201).json({
+      return res.status(201).json({
         message: "Get Product List Tree Structure",
         data: groupedArray,
       });
     }
+
+    res.status(201).json({
+      message: "Get Product List Tree Structure",
+      data: flattenedSampleData,
+    });
   } catch (error) {
     next(error);
   }
@@ -690,410 +368,85 @@ export async function getReliabilityReport(req, res, next) {
 
 export async function getMaintainabilityReport(req, res, next) {
   try {
-    const data = req.query;
-    const reportType = data.reportType;
+    const { projectId, reportType, hierarchyType: hType } = req.query;
 
-    if (reportType == 0) {
-      // Fetch product tree structure
-      const treeStructure = await productTreeStructure
-        .find({ projectId: data.projectId })
-        .populate("projectId")
-        .populate("companyId");
+    const treeStructure = await productTreeStructure
+      .find({ projectId })
+      .populate("projectId")
+      .populate("companyId");
 
-      const allProductData = [];
+    let allProductData = [];
+    treeStructure.forEach((list) => {
+      const root = list.treeStructure;
+      if (root.status === "active") allProductData.push(root);
+      allProductData.push(...collectActiveNodes(root.children));
+    });
 
-      // Recursively get all active products from the tree structure
-      const getNodeTreeProduct = (childNode) => {
-        if (childNode != null) {
-          for (let i = 0; i < childNode.length; i++) {
-            if (childNode[i].status == "active") {
-              allProductData.push(childNode[i]);
-            }
-            getNodeTreeProduct(childNode[i].children);
-          }
-        }
-      };
-
-      treeStructure.forEach((list) => {
-        const addParentProduct = list.treeStructure;
-        if (addParentProduct.status == "active") {
-          allProductData.push(addParentProduct);
-        }
-        const childNode = addParentProduct.children;
-        getNodeTreeProduct(childNode);
-      });
-      const sampleDataPromises = allProductData.map(async (list) => {
-        const mttrResult = await MTTRPrediction.find({
-          projectId: data.projectId,
-          productId: list.id,
-        }).populate("productId");
-
-        const pmmraResult = await PMMRA.find({
-          projectId: data.projectId,
-          productId: list.id,
-        }).populate("productId");
-
-        // If no results found, return an object with productId and null values
-        return {
-          productId: list,
-          mttrData: mttrResult || null,
-          pmmraData: pmmraResult || null,
-        };
-      });
-
-      const sampleData = await Promise.all(sampleDataPromises);
-
-      // Flatten the sampleData array if it contains nested arrays
-      const flattenedSampleData = sampleData.flat();
-
-      res.status(201).json({
-        message: "Get Product List Tree Structure",
-        data: flattenedSampleData,
-      });
-    } else if (reportType == 1) {
-      const treeStructure = await productTreeStructure
-        .find({ projectId: data.projectId })
-        .populate("projectId")
-        .populate("companyId");
-      const allProductData = [];
-      treeStructure.map((list) => {
-        const addParentProduct = list.treeStructure;
-        if (addParentProduct.status == "active") {
-          allProductData.push(addParentProduct);
-        }
-        const childNode = addParentProduct.children;
-        getNodeTreeProduct(childNode);
-        async function getNodeTreeProduct(childNode) {
-          if (childNode != null) {
-            for (let i = 0; i < childNode.length; i++) {
-              if (childNode[i].status == "active") {
-                allProductData.push(childNode[i]);
-              }
-              getNodeTreeProduct(childNode[i].children);
-            }
-          }
-        }
-      });
-
-      const sampleDataPromises = allProductData.map(async (list) => {
-        const mttrResult = await MTTRPrediction.find({
-          projectId: data.projectId,
-          productId: list.id,
-        }).populate("productId");
-
-        const pmmraResult = await PMMRA.find({
-          projectId: data.projectId,
-          productId: list.id,
-        }).populate("productId");
-
-        // If no results found, return an object with productId and null values
-        return {
-          productId: list,
-          mttrData: mttrResult || null,
-          pmmraData: pmmraResult || null,
-        };
-      });
-
-      const sampleData = await Promise.all(sampleDataPromises);
-
-      // Flatten the sampleData array if it contains nested arrays
-      const flattenedSampleData = sampleData.flat();
-
-      function filterDataByHierarchyType(flattenedSampleData, hierarchyType) {
-        return new Promise((resolve, reject) => {
-          let filteredData = [];
-          try {
-            if (hierarchyType == 1) {
-              filteredData = flattenedSampleData.filter((item) => {
-                const indexCountStr = String(item.productId.indexCount);
-                return !indexCountStr.includes(".");
-              });
-            } else if (hierarchyType) {
-              filteredData = flattenedSampleData.filter((item) => {
-                const indexCountStr = String(item.productId.indexCount);
-                return indexCountStr.split(".").length == hierarchyType;
-              });
-            }
-            resolve(filteredData);
-          } catch (error) {
-            reject(error);
-          }
-        });
-      }
-
-      const hierarchyType = parseInt(data.hierarchyType);
-
-      try {
-        const filteredData = await filterDataByHierarchyType(
-          flattenedSampleData,
-          hierarchyType
-        );
-
-        res.status(201).json({
-          message: "Get Product List Tree Structure",
-          data: filteredData,
-        });
-      } catch (error) {
-        res.status(500).json({
-          message: "Error filtering data",
-          error: error.message,
-        });
-      }
-    } else if (reportType == 2) {
-      const treeStructure = await productTreeStructure
-        .find({ projectId: data.projectId })
-        .populate("projectId")
-        .populate("companyId");
-      const allProductData = [];
-      treeStructure.map((list) => {
-        const addParentProduct = list.treeStructure;
-        if (
-          addParentProduct.status == "active" &&
-          addParentProduct.category == "Assembly"
-        ) {
-          allProductData.push(addParentProduct);
-        }
-        const childNode = addParentProduct.children;
-        getNodeTreeProduct(childNode);
-        async function getNodeTreeProduct(childNode) {
-          if (childNode != null) {
-            for (let i = 0; i < childNode.length; i++) {
-              if (
-                childNode[i].status == "active" &&
-                childNode[i].category == "Assembly"
-              ) {
-                allProductData.push(childNode[i]);
-              }
-              getNodeTreeProduct(childNode[i].children);
-            }
-          }
-        }
-      });
-      const sampleDataPromises = allProductData.map(async (list) => {
-        const mttrResult = await MTTRPrediction.find({
-          projectId: data.projectId,
-          productId: list.id,
-        }).populate("productId");
-
-        const pmmraResult = await PMMRA.find({
-          projectId: data.projectId,
-          productId: list.id,
-        }).populate("productId");
-
-        // If no results found, return an object with productId and null values
-        return {
-          productId: list,
-          mttrData: mttrResult || null,
-          pmmraData: pmmraResult || null,
-        };
-      });
-
-      const sampleData = await Promise.all(sampleDataPromises);
-
-      // Flatten the sampleData array if it contains nested arrays
-      const flattenedSampleData = sampleData.flat();
-
-      res.status(201).json({
-        message: "Get Product List Tree Structure",
-        data: flattenedSampleData,
-      });
+    if (reportType == 2) {
+      allProductData = allProductData.filter((p) => p.category === "Assembly");
     } else if (reportType == 3) {
-      const treeStructure = await productTreeStructure
-        .find({ projectId: data.projectId })
-        .populate("projectId")
-        .populate("companyId");
-      const allProductData = [];
-      treeStructure.map((list) => {
-        const addParentProduct = list.treeStructure;
-        if (
-          addParentProduct.status == "active" &&
-          addParentProduct.category == "Electronic"
-        ) {
-          allProductData.push(addParentProduct);
-        }
-        const childNode = addParentProduct.children;
-        getNodeTreeProduct(childNode);
-        async function getNodeTreeProduct(childNode) {
-          if (childNode != null) {
-            for (let i = 0; i < childNode.length; i++) {
-              if (
-                childNode[i].status == "active" &&
-                childNode[i].category == "Electronic"
-              ) {
-                allProductData.push(childNode[i]);
-              }
-              getNodeTreeProduct(childNode[i].children);
-            }
-          }
-        }
-      });
-      const sampleDataPromises = allProductData.map(async (list) => {
-        const mttrResult = await MTTRPrediction.find({
-          projectId: data.projectId,
-          productId: list.id,
-        }).populate("productId");
-
-        const pmmraResult = await PMMRA.find({
-          projectId: data.projectId,
-          productId: list.id,
-        }).populate("productId");
-
-        // If no results found, return an object with productId and null values
-        return {
-          productId: list,
-          mttrData: mttrResult || null,
-          pmmraData: pmmraResult || null,
-        };
-      });
-
-      const sampleData = await Promise.all(sampleDataPromises);
-
-      // Flatten the sampleData array if it contains nested arrays
-      const flattenedSampleData = sampleData.flat();
-
-      res.status(201).json({
-        message: "Get Product List Tree Structure",
-        data: flattenedSampleData,
-      });
+      allProductData = allProductData.filter((p) => p.category === "Electronic");
     } else if (reportType == 4) {
-      const treeStructure = await productTreeStructure
-        .find({ projectId: data.projectId })
-        .populate("projectId")
-        .populate("companyId");
-      const allProductData = [];
-      treeStructure.map((list) => {
-        const addParentProduct = list.treeStructure;
-        if (
-          addParentProduct.status == "active" &&
-          addParentProduct.category == "Mechanical"
-        ) {
-          allProductData.push(addParentProduct);
-        }
-        const childNode = addParentProduct.children;
-        getNodeTreeProduct(childNode);
-        async function getNodeTreeProduct(childNode) {
-          if (childNode != null) {
-            for (let i = 0; i < childNode.length; i++) {
-              if (
-                childNode[i].status == "active" &&
-                childNode[i].category == "Mechanical"
-              ) {
-                allProductData.push(childNode[i]);
-              }
-              getNodeTreeProduct(childNode[i].children);
-            }
-          }
-        }
-      });
-      const sampleDataPromises = allProductData.map(async (list) => {
-        const mttrResult = await MTTRPrediction.find({
-          projectId: data.projectId,
-          productId: list.id,
-        }).populate("productId");
-
-        const pmmraResult = await PMMRA.find({
-          projectId: data.projectId,
-          productId: list.id,
-        }).populate("productId");
-
-        // If no results found, return an object with productId and null values
-        return {
-          productId: list,
-          mttrData: mttrResult || null,
-          pmmraData: pmmraResult || null,
-        };
-      });
-
-      const sampleData = await Promise.all(sampleDataPromises);
-
-      // Flatten the sampleData array if it contains nested arrays
-      const flattenedSampleData = sampleData.flat();
-
-      res.status(201).json({
-        message: "Get Product List Tree Structure",
-        data: flattenedSampleData,
-      });
+      allProductData = allProductData.filter((p) => p.category === "Mechanical");
     } else if (reportType == 5) {
-      const treeStructure = await productTreeStructure
-        .find({ projectId: data.projectId })
-        .populate("projectId")
-        .populate("companyId");
+      allProductData = allProductData.filter(
+        (p) => p.category === "Mechanical" || p.category === "Electronic"
+      );
+    }
 
-      const allProductData = [];
+    const productIds = allProductData.map((p) => p.id);
+    const [mttrResults, pmmraResults] = await Promise.all([
+      MTTRPrediction.find({ projectId, productId: { $in: productIds } }).populate("productId"),
+      PMMRA.find({ projectId, productId: { $in: productIds } }).populate("productId"),
+    ]);
 
-      treeStructure.map((list) => {
-        const addParentProduct = list.treeStructure;
-        if (
-          (addParentProduct.status == "active" &&
-            addParentProduct.category == "Mechanical") ||
-          addParentProduct.category == "Electronic"
-        ) {
-          allProductData.push(addParentProduct);
-        }
-        const childNode = addParentProduct.children;
-        getNodeTreeProduct(childNode);
+    const mttrMap = new Map();
+    mttrResults.forEach((r) => {
+      const pid = r.productId?._id?.toString() ?? r.productId?.toString();
+      if (!mttrMap.has(pid)) mttrMap.set(pid, []);
+      mttrMap.get(pid).push(r);
+    });
 
-        async function getNodeTreeProduct(childNode) {
-          if (childNode != null) {
-            for (let i = 0; i < childNode.length; i++) {
-              if (
-                (childNode[i].status == "active" &&
-                  childNode[i].category == "Mechanical") ||
-                childNode[i].category == "Electronic"
-              ) {
-                allProductData.push(childNode[i]);
-              }
-              getNodeTreeProduct(childNode[i].children);
-            }
-          }
-        }
+    const pmmraMap = new Map();
+    pmmraResults.forEach((r) => {
+      const pid = r.productId?._id?.toString() ?? r.productId?.toString();
+      if (!pmmraMap.has(pid)) pmmraMap.set(pid, []);
+      pmmraMap.get(pid).push(r);
+    });
+
+    const flattenedSampleData = allProductData.map((list) => ({
+      productId: list,
+      mttrData: mttrMap.get(list.id.toString()) || null,
+      pmmraData: pmmraMap.get(list.id.toString()) || null,
+    }));
+
+    if (reportType == 1) {
+      const hierarchyType = parseInt(hType);
+      const filteredData = flattenedSampleData.filter((item) => {
+        const idx = String(item.productId.indexCount);
+        return hierarchyType === 1 ? !idx.includes(".") : idx.split(".").length === hierarchyType;
       });
 
-      const sampleDataPromises = allProductData.map(async (list) => {
-        const mttrResult = await MTTRPrediction.find({
-          projectId: data.projectId,
-          productId: list.id,
-        }).populate("productId");
+      return res.status(201).json({ message: "Get Product List Tree Structure", data: filteredData });
+    }
 
-        const pmmraResult = await PMMRA.find({
-          projectId: data.projectId,
-          productId: list.id,
-        }).populate("productId");
-
-        // If no results found, return an object with productId and null values
-        return {
-          productId: list,
-          mttrData: mttrResult || null,
-          pmmraData: pmmraResult || null,
-        };
-      });
-
-      const sampleData = await Promise.all(sampleDataPromises);
-
-      // Flatten the sampleData array if it contains nested arrays
-      const flattenedSampleData = sampleData.flat();
-
-      // Grouping based on partType
+    if (reportType == 5) {
       const groupedData = flattenedSampleData.reduce((acc, product) => {
-        const partType = product.productId.partType || "Undefined"; // Default to 'Undefined' if partType is not specified
-        if (!acc[partType]) {
-          acc[partType] = [];
-        }
+        const partType = product.productId.partType || "Undefined";
+        if (!acc[partType]) acc[partType] = [];
         acc[partType].push(product);
         return acc;
       }, {});
 
-      // Converting grouped data to an array of objects
-      const groupedArray = Object.keys(groupedData).map((key, index) => ({
+      const groupedArray = Object.keys(groupedData).map((key) => ({
         partType: key,
         items: groupedData[key],
       }));
 
-      res.status(201).json({
-        message: "Get Product List Tree Structure",
-        data: groupedArray,
-      });
+      return res.status(201).json({ message: "Get Product List Tree Structure", data: groupedArray });
     }
+
+    res.status(201).json({ message: "Get Product List Tree Structure", data: flattenedSampleData });
   } catch (error) {
     next(error);
   }
@@ -1101,379 +454,77 @@ export async function getMaintainabilityReport(req, res, next) {
 
 export async function getPreventiveReport(req, res, next) {
   try {
-    const data = req.query;
+    const { projectId, reportType, hierarchyType: hType } = req.query;
 
-    const reportType = data.reportType;
+    const treeStructure = await productTreeStructure
+      .find({ projectId })
+      .populate("projectId")
+      .populate("companyId");
 
-    if (reportType == 0) {
-      // Fetch product tree structure
-      const treeStructure = await productTreeStructure
-        .find({ projectId: data.projectId })
-        .populate("projectId")
-        .populate("companyId");
+    let allProductData = [];
+    treeStructure.forEach((list) => {
+      const root = list.treeStructure;
+      if (root.status === "active") allProductData.push(root);
+      allProductData.push(...collectActiveNodes(root.children));
+    });
 
-      const allProductData = [];
-
-      // Recursively get all active products from the tree structure
-      const getNodeTreeProduct = (childNode) => {
-        if (childNode != null) {
-          for (let i = 0; i < childNode.length; i++) {
-            if (childNode[i].status == "active") {
-              allProductData.push(childNode[i]);
-            }
-            getNodeTreeProduct(childNode[i].children);
-          }
-        }
-      };
-
-      treeStructure.forEach((list) => {
-        const addParentProduct = list.treeStructure;
-        if (addParentProduct.status == "active") {
-          allProductData.push(addParentProduct);
-        }
-        const childNode = addParentProduct.children;
-        getNodeTreeProduct(childNode);
-      });
-      const sampleDataPromises = allProductData.map(async (list) => {
-        const pmmraResult = await PMMRA.find({
-          projectId: data.projectId,
-          productId: list.id,
-        }).populate("productId");
-
-        // If no results found, return an object with productId and null values
-
-        console.log(pmmraResult, "pmmra list")
-        console.log(list, "product list")
-
-        return {
-          productId: list,
-          pmmraData: pmmraResult || null,
-        };
-      });
-
-      const sampleData = await Promise.all(sampleDataPromises);
-
-      // Flatten the sampleData array if it contains nested arrays
-      const flattenedSampleData = sampleData.flat();
-
-      res.status(201).json({
-        message: "Get Product List Tree Structure",
-        data: flattenedSampleData,
-      });
-    } else if (reportType == 1) {
-      const treeStructure = await productTreeStructure
-        .find({ projectId: data.projectId })
-        .populate("projectId")
-        .populate("companyId");
-      const allProductData = [];
-      treeStructure.map((list) => {
-        const addParentProduct = list.treeStructure;
-        if (addParentProduct.status == "active") {
-          allProductData.push(addParentProduct);
-        }
-        const childNode = addParentProduct.children;
-        getNodeTreeProduct(childNode);
-        async function getNodeTreeProduct(childNode) {
-          if (childNode != null) {
-            for (let i = 0; i < childNode.length; i++) {
-              if (childNode[i].status == "active") {
-                allProductData.push(childNode[i]);
-              }
-              getNodeTreeProduct(childNode[i].children);
-            }
-          }
-        }
-      });
-
-      const sampleDataPromises = allProductData.map(async (list) => {
-        const pmmraResult = await PMMRA.find({
-          projectId: data.projectId,
-          productId: list.id,
-        }).populate("productId");
-
-        // If no results found, return an object with productId and null values
-        return {
-          productId: list,
-          pmmraData: pmmraResult || null,
-        };
-      });
-
-      const sampleData = await Promise.all(sampleDataPromises);
-
-      // Flatten the sampleData array if it contains nested arrays
-      const flattenedSampleData = sampleData.flat();
-
-      function filterDataByHierarchyType(flattenedSampleData, hierarchyType) {
-        return new Promise((resolve, reject) => {
-          let filteredData = [];
-          try {
-            if (hierarchyType == 1) {
-              filteredData = flattenedSampleData.filter((item) => {
-                const indexCountStr = String(item.productId.indexCount);
-                return !indexCountStr.includes(".");
-              });
-            } else if (hierarchyType) {
-              filteredData = flattenedSampleData.filter((item) => {
-                const indexCountStr = String(item.productId.indexCount);
-                return indexCountStr.split(".").length == hierarchyType;
-              });
-            }
-            resolve(filteredData);
-          } catch (error) {
-            reject(error);
-          }
-        });
-      }
-
-      const hierarchyType = parseInt(data.hierarchyType);
-
-      try {
-        const filteredData = await filterDataByHierarchyType(
-          flattenedSampleData,
-          hierarchyType
-        );
-
-        res.status(201).json({
-          message: "Get Product List Tree Structure",
-          data: filteredData,
-        });
-      } catch (error) {
-        res.status(500).json({
-          message: "Error filtering data",
-          error: error.message,
-        });
-      }
-    } else if (reportType == 2) {
-      const treeStructure = await productTreeStructure
-        .find({ projectId: data.projectId })
-        .populate("projectId")
-        .populate("companyId");
-      const allProductData = [];
-      treeStructure.map((list) => {
-        const addParentProduct = list.treeStructure;
-        if (
-          addParentProduct.status == "active" &&
-          addParentProduct.category == "Assembly"
-        ) {
-          allProductData.push(addParentProduct);
-        }
-        const childNode = addParentProduct.children;
-        getNodeTreeProduct(childNode);
-        async function getNodeTreeProduct(childNode) {
-          if (childNode != null) {
-            for (let i = 0; i < childNode.length; i++) {
-              if (
-                childNode[i].status == "active" &&
-                childNode[i].category == "Assembly"
-              ) {
-                allProductData.push(childNode[i]);
-              }
-              getNodeTreeProduct(childNode[i].children);
-            }
-          }
-        }
-      });
-      const sampleDataPromises = allProductData.map(async (list) => {
-        const pmmraResult = await PMMRA.find({
-          projectId: data.projectId,
-          productId: list.id,
-        }).populate("productId");
-
-        // If no results found, return an object with productId and null values
-        return {
-          productId: list,
-          pmmraData: pmmraResult || null,
-        };
-      });
-
-      const sampleData = await Promise.all(sampleDataPromises);
-
-      // Flatten the sampleData array if it contains nested arrays
-      const flattenedSampleData = sampleData.flat();
-
-      res.status(201).json({
-        message: "Get Product List Tree Structure",
-        data: flattenedSampleData,
-      });
+    if (reportType == 2) {
+      allProductData = allProductData.filter((p) => p.category === "Assembly");
     } else if (reportType == 3) {
-      const treeStructure = await productTreeStructure
-        .find({ projectId: data.projectId })
-        .populate("projectId")
-        .populate("companyId");
-      const allProductData = [];
-      treeStructure.map((list) => {
-        const addParentProduct = list.treeStructure;
-        if (
-          addParentProduct.status == "active" &&
-          addParentProduct.category == "Electronic"
-        ) {
-          allProductData.push(addParentProduct);
-        }
-        const childNode = addParentProduct.children;
-        getNodeTreeProduct(childNode);
-        async function getNodeTreeProduct(childNode) {
-          if (childNode != null) {
-            for (let i = 0; i < childNode.length; i++) {
-              if (
-                childNode[i].status == "active" &&
-                childNode[i].category == "Electronic"
-              ) {
-                allProductData.push(childNode[i]);
-              }
-              getNodeTreeProduct(childNode[i].children);
-            }
-          }
-        }
-      });
-      const sampleDataPromises = allProductData.map(async (list) => {
-        const pmmraResult = await PMMRA.find({
-          projectId: data.projectId,
-          productId: list.id,
-        }).populate("productId");
-
-        // If no results found, return an object with productId and null values
-        return {
-          productId: list,
-          pmmraData: pmmraResult || null,
-        };
-      });
-
-      const sampleData = await Promise.all(sampleDataPromises);
-
-      // Flatten the sampleData array if it contains nested arrays
-      const flattenedSampleData = sampleData.flat();
-
-      res.status(201).json({
-        message: "Get Product List Tree Structure",
-        data: flattenedSampleData,
-      });
+      allProductData = allProductData.filter((p) => p.category === "Electronic");
     } else if (reportType == 4) {
-      const treeStructure = await productTreeStructure
-        .find({ projectId: data.projectId })
-        .populate("projectId")
-        .populate("companyId");
-      const allProductData = [];
-      treeStructure.map((list) => {
-        const addParentProduct = list.treeStructure;
-        if (
-          addParentProduct.status == "active" &&
-          addParentProduct.category == "Mechanical"
-        ) {
-          allProductData.push(addParentProduct);
-        }
-        const childNode = addParentProduct.children;
-        getNodeTreeProduct(childNode);
-        async function getNodeTreeProduct(childNode) {
-          if (childNode != null) {
-            for (let i = 0; i < childNode.length; i++) {
-              if (
-                childNode[i].status == "active" &&
-                childNode[i].category == "Mechanical"
-              ) {
-                allProductData.push(childNode[i]);
-              }
-              getNodeTreeProduct(childNode[i].children);
-            }
-          }
-        }
-      });
-      const sampleDataPromises = allProductData.map(async (list) => {
-        const pmmraResult = await PMMRA.find({
-          projectId: data.projectId,
-          productId: list.id,
-        }).populate("productId");
-
-        // If no results found, return an object with productId and null values
-        return {
-          productId: list,
-          pmmraData: pmmraResult || null,
-        };
-      });
-
-      const sampleData = await Promise.all(sampleDataPromises);
-
-      // Flatten the sampleData array if it contains nested arrays
-      const flattenedSampleData = sampleData.flat();
-
-      res.status(201).json({
-        message: "Get Product List Tree Structure",
-        data: flattenedSampleData,
-      });
+      allProductData = allProductData.filter((p) => p.category === "Mechanical");
     } else if (reportType == 5) {
-      const treeStructure = await productTreeStructure
-        .find({ projectId: data.projectId })
-        .populate("projectId")
-        .populate("companyId");
+      allProductData = allProductData.filter(
+        (p) => p.category === "Mechanical" || p.category === "Electronic"
+      );
+    }
 
-      const allProductData = [];
+    const productIds = allProductData.map((p) => p.id);
+    const pmmraResults = await PMMRA.find({
+      projectId,
+      productId: { $in: productIds },
+    }).populate("productId");
 
-      treeStructure.map((list) => {
-        const addParentProduct = list.treeStructure;
-        if (
-          (addParentProduct.status == "active" &&
-            addParentProduct.category == "Mechanical") ||
-          addParentProduct.category == "Electronic"
-        ) {
-          allProductData.push(addParentProduct);
-        }
-        const childNode = addParentProduct.children;
-        getNodeTreeProduct(childNode);
+    const pmmraMap = new Map();
+    pmmraResults.forEach((r) => {
+      const pid = r.productId?._id?.toString() ?? r.productId?.toString();
+      if (!pmmraMap.has(pid)) pmmraMap.set(pid, []);
+      pmmraMap.get(pid).push(r);
+    });
 
-        async function getNodeTreeProduct(childNode) {
-          if (childNode != null) {
-            for (let i = 0; i < childNode.length; i++) {
-              if (
-                (childNode[i].status == "active" &&
-                  childNode[i].category == "Mechanical") ||
-                childNode[i].category == "Electronic"
-              ) {
-                allProductData.push(childNode[i]);
-              }
-              getNodeTreeProduct(childNode[i].children);
-            }
-          }
-        }
+    const flattenedSampleData = allProductData.map((list) => ({
+      productId: list,
+      pmmraData: pmmraMap.get(list.id.toString()) || null,
+    }));
+
+    if (reportType == 1) {
+      const hierarchyType = parseInt(hType);
+      const filteredData = flattenedSampleData.filter((item) => {
+        const idx = String(item.productId.indexCount);
+        return hierarchyType === 1 ? !idx.includes(".") : idx.split(".").length === hierarchyType;
       });
 
-      const sampleDataPromises = allProductData.map(async (list) => {
-        const pmmraResult = await PMMRA.find({
-          projectId: data.projectId,
-          productId: list.id,
-        }).populate("productId");
+      return res.status(201).json({ message: "Get Product List Tree Structure", data: filteredData });
+    }
 
-        // If no results found, return an object with productId and null values
-        return {
-          productId: list,
-          pmmraData: pmmraResult || null,
-        };
-      });
-
-      const sampleData = await Promise.all(sampleDataPromises);
-
-      // Flatten the sampleData array if it contains nested arrays
-      const flattenedSampleData = sampleData.flat();
-
-      // Grouping based on partType
+    if (reportType == 5) {
       const groupedData = flattenedSampleData.reduce((acc, product) => {
-        const partType = product.productId.partType || "Undefined"; // Default to 'Undefined' if partType is not specified
-        if (!acc[partType]) {
-          acc[partType] = [];
-        }
+        const partType = product.productId.partType || "Undefined";
+        if (!acc[partType]) acc[partType] = [];
         acc[partType].push(product);
         return acc;
       }, {});
 
-      // Converting grouped data to an array of objects
-      const groupedArray = Object.keys(groupedData).map((key, index) => ({
+      const groupedArray = Object.keys(groupedData).map((key) => ({
         partType: key,
         items: groupedData[key],
       }));
 
-      res.status(201).json({
-        message: "Get Product List Tree Structure",
-        data: groupedArray,
-      });
+      return res.status(201).json({ message: "Get Product List Tree Structure", data: groupedArray });
     }
+
+    res.status(201).json({ message: "Get Product List Tree Structure", data: flattenedSampleData });
   } catch (error) {
     next(error);
   }
@@ -1481,424 +532,78 @@ export async function getPreventiveReport(req, res, next) {
 
 export async function getSparePartsAnanysisReport(req, res, next) {
   try {
-    const data = req.query;
-    const reportType = data.reportType;
-    if (reportType == 0) {
-      const treeStructure = await productTreeStructure
-        .find({ projectId: data.projectId })
-        .populate("projectId")
-        .populate("companyId");
+    const { projectId, reportType, hierarchyType: hType } = req.query;
 
-      const allProductData = [];
+    const treeStructure = await productTreeStructure
+      .find({ projectId })
+      .populate("projectId")
+      .populate("companyId");
 
-      // Recursively get all active products from the tree structure
-      const getNodeTreeProduct = (childNode) => {
-        if (childNode != null) {
-          for (let i = 0; i < childNode.length; i++) {
-            if (childNode[i].status == "active") {
-              allProductData.push(childNode[i]);
-            }
-            getNodeTreeProduct(childNode[i].children);
-          }
-        }
-      };
+    let allProductData = [];
+    treeStructure.forEach((list) => {
+      const root = list.treeStructure;
+      if (root.status === "active") allProductData.push(root);
+      allProductData.push(...collectActiveNodes(root.children));
+    });
 
-
-
-      treeStructure.forEach((list) => {
-        const addParentProduct = list.treeStructure;
-        if (addParentProduct.status == "active") {
-          allProductData.push(addParentProduct);
-        }
-        const childNode = addParentProduct.children;
-        getNodeTreeProduct(childNode);
-      });
-
-
-
-      console.log(allProductData, 'allProductData .... ')
-
-
-
-      const sampleDataPromises = allProductData.map(async (list) => {
-
-        console.log(list, "list value...")
-
-        const mttrResult = await MTTRPrediction.findOne({
-          projectId: data.projectId,
-          productId: list.id,
-        }).populate("productId");
-
-        const sparePartsResult = await SparePartsAnalysis.findOne({
-          projectId: data.projectId,
-          productId: list.id,
-        }).populate("productId");
-
-        console.log(sparePartsResult, "sparePartsResult")
-
-        // If no results found, return an object with productId and null values
-        return {
-          productId: list,
-          mttrData: mttrResult || null,
-          sparePartsData: sparePartsResult || null,
-        };
-      });
-
-
-
-      const sampleData = await Promise.all(sampleDataPromises);
-
-      // Flatten the sampleData array if it contains nested arrays
-      const flattenedSampleData = sampleData.flat();
-
-      res.status(201).json({
-        message: "Get Product List Tree Structure sss",
-        data: flattenedSampleData,
-      });
-    } else if (reportType == 1) {
-      const treeStructure = await productTreeStructure
-        .find({ projectId: data.projectId })
-        .populate("projectId")
-        .populate("companyId");
-      const allProductData = [];
-      treeStructure.map((list) => {
-        const addParentProduct = list.treeStructure;
-        if (addParentProduct.status == "active") {
-          allProductData.push(addParentProduct);
-        }
-        const childNode = addParentProduct.children;
-        getNodeTreeProduct(childNode);
-        async function getNodeTreeProduct(childNode) {
-          if (childNode != null) {
-            for (let i = 0; i < childNode.length; i++) {
-              if (childNode[i].status == "active") {
-                allProductData.push(childNode[i]);
-              }
-              getNodeTreeProduct(childNode[i].children);
-            }
-          }
-        }
-      });
-
-      const sampleDataPromises = allProductData.map(async (list) => {
-        const mttrResult = await MTTRPrediction.findOne({
-          projectId: data.projectId,
-          productId: list.id,
-        }).populate("productId");
-
-        const sparePartsResult = await SparePartsAnalysis.findOne({
-          projectId: data.projectId,
-          productId: list.id,
-        }).populate("productId");
-
-        // If no results found, return an object with productId and null values
-        return {
-          productId: list,
-          mttrData: mttrResult || null,
-          sparePartsData: sparePartsResult || null,
-        };
-      });
-
-      const sampleData = await Promise.all(sampleDataPromises);
-
-      // Flatten the sampleData array if it contains nested arrays
-      const flattenedSampleData = sampleData.flat();
-
-      function filterDataByHierarchyType(flattenedSampleData, hierarchyType) {
-        return new Promise((resolve, reject) => {
-          let filteredData = [];
-          try {
-            if (hierarchyType == 1) {
-              filteredData = flattenedSampleData.filter((item) => {
-                const indexCountStr = String(item.productId.indexCount);
-                return !indexCountStr.includes(".");
-              });
-            } else if (hierarchyType) {
-              filteredData = flattenedSampleData.filter((item) => {
-                const indexCountStr = String(item.productId.indexCount);
-                return indexCountStr.split(".").length == hierarchyType;
-              });
-            }
-            resolve(filteredData);
-          } catch (error) {
-            reject(error);
-          }
-        });
-      }
-
-      const hierarchyType = parseInt(data.hierarchyType);
-
-      try {
-        const filteredData = await filterDataByHierarchyType(
-          flattenedSampleData,
-          hierarchyType
-        );
-
-        res.status(201).json({
-          message: "Get Product List Tree Structure",
-          data: filteredData,
-        });
-      } catch (error) {
-        res.status(500).json({
-          message: "Error filtering data",
-          error: error.message,
-        });
-      }
-    } else if (reportType == 2) {
-      const treeStructure = await productTreeStructure
-        .find({ projectId: data.projectId })
-        .populate("projectId")
-        .populate("companyId");
-      const allProductData = [];
-      treeStructure.map((list) => {
-        const addParentProduct = list.treeStructure;
-        if (
-          addParentProduct.status == "active" &&
-          addParentProduct.category == "Assembly"
-        ) {
-          allProductData.push(addParentProduct);
-        }
-        const childNode = addParentProduct.children;
-        getNodeTreeProduct(childNode);
-        async function getNodeTreeProduct(childNode) {
-          if (childNode != null) {
-            for (let i = 0; i < childNode.length; i++) {
-              if (
-                childNode[i].status == "active" &&
-                childNode[i].category == "Assembly"
-              ) {
-                allProductData.push(childNode[i]);
-              }
-              getNodeTreeProduct(childNode[i].children);
-            }
-          }
-        }
-      });
-      const sampleDataPromises = allProductData.map(async (list) => {
-        const mttrResult = await MTTRPrediction.findOne({
-          projectId: data.projectId,
-          productId: list.id,
-        }).populate("productId");
-
-        const sparePartsResult = await SparePartsAnalysis.findOne({
-          projectId: data.projectId,
-          productId: list.id,
-        }).populate("productId");
-
-        // If no results found, return an object with productId and null values
-        return {
-          productId: list,
-          mttrData: mttrResult || null,
-          sparePartsData: sparePartsResult || null,
-        };
-      });
-
-      const sampleData = await Promise.all(sampleDataPromises);
-
-      // Flatten the sampleData array if it contains nested arrays
-      const flattenedSampleData = sampleData.flat();
-
-      res.status(201).json({
-        message: "Get Product List Tree Structure",
-        data: flattenedSampleData,
-      });
+    if (reportType == 2) {
+      allProductData = allProductData.filter((p) => p.category === "Assembly");
     } else if (reportType == 3) {
-      const treeStructure = await productTreeStructure
-        .find({ projectId: data.projectId })
-        .populate("projectId")
-        .populate("companyId");
-      const allProductData = [];
-      treeStructure.map((list) => {
-        const addParentProduct = list.treeStructure;
-        if (
-          addParentProduct.status == "active" &&
-          addParentProduct.category == "Electronic"
-        ) {
-          allProductData.push(addParentProduct);
-        }
-        const childNode = addParentProduct.children;
-        getNodeTreeProduct(childNode);
-        async function getNodeTreeProduct(childNode) {
-          if (childNode != null) {
-            for (let i = 0; i < childNode.length; i++) {
-              if (
-                childNode[i].status == "active" &&
-                childNode[i].category == "Electronic"
-              ) {
-                allProductData.push(childNode[i]);
-              }
-              getNodeTreeProduct(childNode[i].children);
-            }
-          }
-        }
-      });
-      const sampleDataPromises = allProductData.map(async (list) => {
-        const mttrResult = await MTTRPrediction.findOne({
-          projectId: data.projectId,
-          productId: list.id,
-        }).populate("productId");
-
-        const sparePartsResult = await SparePartsAnalysis.findOne({
-          projectId: data.projectId,
-          productId: list.id,
-        }).populate("productId");
-
-        // If no results found, return an object with productId and null values
-        return {
-          productId: list,
-          mttrData: mttrResult || null,
-          sparePartsData: sparePartsResult || null,
-        };
-      });
-
-      const sampleData = await Promise.all(sampleDataPromises);
-
-      // Flatten the sampleData array if it contains nested arrays
-      const flattenedSampleData = sampleData.flat();
-
-      res.status(201).json({
-        message: "Get Product List Tree Structure",
-        data: flattenedSampleData,
-      });
+      allProductData = allProductData.filter((p) => p.category === "Electronic");
     } else if (reportType == 4) {
-      const treeStructure = await productTreeStructure
-        .find({ projectId: data.projectId })
-        .populate("projectId")
-        .populate("companyId");
-      const allProductData = [];
-      treeStructure.map((list) => {
-        const addParentProduct = list.treeStructure;
-        if (
-          addParentProduct.status == "active" &&
-          addParentProduct.category == "Mechanical"
-        ) {
-          allProductData.push(addParentProduct);
-        }
-        const childNode = addParentProduct.children;
-        getNodeTreeProduct(childNode);
-        async function getNodeTreeProduct(childNode) {
-          if (childNode != null) {
-            for (let i = 0; i < childNode.length; i++) {
-              if (
-                childNode[i].status == "active" &&
-                childNode[i].category == "Mechanical"
-              ) {
-                allProductData.push(childNode[i]);
-              }
-              getNodeTreeProduct(childNode[i].children);
-            }
-          }
-        }
-      });
-      const sampleDataPromises = allProductData.map(async (list) => {
-        const mttrResult = await MTTRPrediction.findOne({
-          projectId: data.projectId,
-          productId: list.id,
-        }).populate("productId");
-
-        const sparePartsResult = await SparePartsAnalysis.findOne({
-          projectId: data.projectId,
-          productId: list.id,
-        }).populate("productId");
-
-        // If no results found, return an object with productId and null values
-        return {
-          productId: list,
-          mttrData: mttrResult || null,
-          sparePartsData: sparePartsResult || null,
-        };
-      });
-
-      const sampleData = await Promise.all(sampleDataPromises);
-
-      // Flatten the sampleData array if it contains nested arrays
-      const flattenedSampleData = sampleData.flat();
-
-      res.status(201).json({
-        message: "Get Product List Tree Structure",
-        data: flattenedSampleData,
-      });
+      allProductData = allProductData.filter((p) => p.category === "Mechanical");
     } else if (reportType == 5) {
-      const treeStructure = await productTreeStructure
-        .find({ projectId: data.projectId })
-        .populate("projectId")
-        .populate("companyId");
+      allProductData = allProductData.filter(
+        (p) => p.category === "Mechanical" || p.category === "Electronic"
+      );
+    }
 
-      const allProductData = [];
+    const productIds = allProductData.map((p) => p.id);
+    const [mttrResults, spareResults] = await Promise.all([
+      MTTRPrediction.find({ projectId, productId: { $in: productIds } }).populate("productId"),
+      SparePartsAnalysis.find({ projectId, productId: { $in: productIds } }).populate("productId"),
+    ]);
 
-      treeStructure.map((list) => {
-        const addParentProduct = list.treeStructure;
-        if (
-          (addParentProduct.status == "active" &&
-            addParentProduct.category == "Mechanical") ||
-          addParentProduct.category == "Electronic"
-        ) {
-          allProductData.push(addParentProduct);
-        }
-        const childNode = addParentProduct.children;
-        getNodeTreeProduct(childNode);
+    const mttrMap = new Map(
+      mttrResults.map((r) => [r.productId?._id?.toString() ?? r.productId?.toString(), r])
+    );
+    const spareMap = new Map(
+      spareResults.map((r) => [r.productId?._id?.toString() ?? r.productId?.toString(), r])
+    );
 
-        async function getNodeTreeProduct(childNode) {
-          if (childNode != null) {
-            for (let i = 0; i < childNode.length; i++) {
-              if (
-                (childNode[i].status == "active" &&
-                  childNode[i].category == "Mechanical") ||
-                childNode[i].category == "Electronic"
-              ) {
-                allProductData.push(childNode[i]);
-              }
-              getNodeTreeProduct(childNode[i].children);
-            }
-          }
-        }
+    const flattenedSampleData = allProductData.map((list) => ({
+      productId: list,
+      mttrData: mttrMap.get(list.id.toString()) || null,
+      sparePartsData: spareMap.get(list.id.toString()) || null,
+    }));
+
+    if (reportType == 1) {
+      const hierarchyType = parseInt(hType);
+      const filteredData = flattenedSampleData.filter((item) => {
+        const idx = String(item.productId.indexCount);
+        return hierarchyType === 1 ? !idx.includes(".") : idx.split(".").length === hierarchyType;
       });
 
-      const sampleDataPromises = allProductData.map(async (list) => {
-        const mttrResult = await MTTRPrediction.findOne({
-          projectId: data.projectId,
-          productId: list.id,
-        }).populate("productId");
+      return res.status(201).json({ message: "Get Product List Tree Structure", data: filteredData });
+    }
 
-        const sparePartsResult = await SparePartsAnalysis.findOne({
-          projectId: data.projectId,
-          productId: list.id,
-        }).populate("productId");
-
-        // If no results found, return an object with productId and null values
-        return {
-          productId: list,
-          mttrData: mttrResult || null,
-          sparePartsData: sparePartsResult || null,
-        };
-      });
-
-      const sampleData = await Promise.all(sampleDataPromises);
-
-      // Flatten the sampleData array if it contains nested arrays
-      const flattenedSampleData = sampleData.flat();
-
-      // Grouping based on partType
+    if (reportType == 5) {
       const groupedData = flattenedSampleData.reduce((acc, product) => {
-        const partType = product.productId.partType || "Undefined"; // Default to 'Undefined' if partType is not specified
-        if (!acc[partType]) {
-          acc[partType] = [];
-        }
+        const partType = product.productId.partType || "Undefined";
+        if (!acc[partType]) acc[partType] = [];
         acc[partType].push(product);
         return acc;
       }, {});
 
-      // Converting grouped data to an array of objects
-      const groupedArray = Object.keys(groupedData).map((key, index) => ({
+      const groupedArray = Object.keys(groupedData).map((key) => ({
         partType: key,
         items: groupedData[key],
       }));
 
-      res.status(201).json({
-        message: "Get Product List Tree Structure",
-        data: groupedArray,
-      });
+      return res.status(201).json({ message: "Get Product List Tree Structure", data: groupedArray });
     }
+
+    res.status(201).json({ message: "Get Product List Tree Structure", data: flattenedSampleData });
   } catch (error) {
     next(error);
   }
@@ -2146,371 +851,80 @@ export async function getFmecaReport(req, res, next) {
 
 export async function getSafetyReport(req, res, next) {
   try {
-    const data = req.query;
+    const { projectId, reportType, hierarchyType: hType } = req.query;
 
-    const reportType = data.reportType;
-    if (reportType == 0) {
-      const treeStructure = await productTreeStructure
-        .find({ projectId: data.projectId })
-        .populate("projectId")
-        .populate("companyId");
+    const treeStructure = await productTreeStructure
+      .find({ projectId })
+      .populate("projectId")
+      .populate("companyId");
 
-      const allProductData = [];
+    let allProductData = [];
+    treeStructure.forEach((list) => {
+      const root = list.treeStructure;
+      if (root.status === "active") allProductData.push(root);
+      allProductData.push(...collectActiveNodes(root.children));
+    });
 
-      // Recursively get all active products from the tree structure
-      const getNodeTreeProduct = (childNode) => {
-        if (childNode != null) {
-          for (let i = 0; i < childNode.length; i++) {
-            if (childNode[i].status == "active") {
-              allProductData.push(childNode[i]);
-            }
-            getNodeTreeProduct(childNode[i].children);
-          }
-        }
-      };
-
-      treeStructure.forEach((list) => {
-        const addParentProduct = list.treeStructure;
-        if (addParentProduct.status == "active") {
-          allProductData.push(addParentProduct);
-        }
-        const childNode = addParentProduct.children;
-        getNodeTreeProduct(childNode);
-      });
-
-      const sampleDataPromises = allProductData.map(async (list) => {
-        const safetyDatas = await SAFETY.find({
-          projectId: data.projectId,
-          productId: list.id,
-        }).populate("productId");
-
-        // If no results found, return an object with productId and null values
-        return {
-          productId: list,
-          safetyData: safetyDatas || null,
-        };
-      });
-
-      const sampleData = await Promise.all(sampleDataPromises);
-
-      // Flatten the sampleData array if it contains nested arrays
-      const flattenedSampleData = sampleData.flat();
-
-      res.status(201).json({
-        message: "Get Product List Tree Structure",
-        data: flattenedSampleData,
-      });
-    } else if (reportType == 1) {
-      const treeStructure = await productTreeStructure
-        .find({ projectId: data.projectId })
-        .populate("projectId")
-        .populate("companyId");
-      const allProductData = [];
-      treeStructure.map((list) => {
-        const addParentProduct = list.treeStructure;
-        if (addParentProduct.status == "active") {
-          allProductData.push(addParentProduct);
-        }
-        const childNode = addParentProduct.children;
-        getNodeTreeProduct(childNode);
-        async function getNodeTreeProduct(childNode) {
-          if (childNode != null) {
-            for (let i = 0; i < childNode.length; i++) {
-              if (childNode[i].status == "active") {
-                allProductData.push(childNode[i]);
-              }
-              getNodeTreeProduct(childNode[i].children);
-            }
-          }
-        }
-      });
-
-      const sampleDataPromises = allProductData.map(async (list) => {
-        const safetyDatas = await SAFETY.findOne({
-          projectId: data.projectId,
-          productId: list.id,
-        }).populate("productId");
-
-        // If no results found, return an object with productId and null values
-        return {
-          productId: list,
-          safetyData: safetyDatas || null,
-        };
-      });
-
-      const sampleData = await Promise.all(sampleDataPromises);
-      // Flatten the sampleData array if it contains nested arrays
-      const flattenedSampleData = sampleData.flat();
-
-      function filterDataByHierarchyType(flattenedSampleData, hierarchyType) {
-        return new Promise((resolve, reject) => {
-          let filteredData = [];
-          try {
-            if (hierarchyType == 1) {
-              filteredData = flattenedSampleData.filter((item) => {
-                const indexCountStr = String(item.productId.indexCount);
-                return !indexCountStr.includes(".");
-              });
-            } else if (hierarchyType) {
-              filteredData = flattenedSampleData.filter((item) => {
-                const indexCountStr = String(item.productId.indexCount);
-                return indexCountStr.split(".").length == hierarchyType;
-              });
-            }
-            resolve(filteredData);
-          } catch (error) {
-            reject(error);
-          }
-        });
-      }
-
-      const hierarchyType = parseInt(data.hierarchyType);
-
-      try {
-        const filteredData = await filterDataByHierarchyType(
-          flattenedSampleData,
-          hierarchyType
-        );
-
-        res.status(201).json({
-          message: "Get Product List Tree Structure",
-          data: filteredData,
-        });
-      } catch (error) {
-        res.status(500).json({
-          message: "Error filtering data",
-          error: error.message,
-        });
-      }
-    } else if (reportType == 2) {
-      const treeStructure = await productTreeStructure
-        .find({ projectId: data.projectId })
-        .populate("projectId")
-        .populate("companyId");
-      const allProductData = [];
-      treeStructure.map((list) => {
-        const addParentProduct = list.treeStructure;
-        if (
-          addParentProduct.status == "active" &&
-          addParentProduct.category == "Assembly"
-        ) {
-          allProductData.push(addParentProduct);
-        }
-        const childNode = addParentProduct.children;
-        getNodeTreeProduct(childNode);
-        async function getNodeTreeProduct(childNode) {
-          if (childNode != null) {
-            for (let i = 0; i < childNode.length; i++) {
-              if (
-                childNode[i].status == "active" &&
-                childNode[i].category == "Assembly"
-              ) {
-                allProductData.push(childNode[i]);
-              }
-              getNodeTreeProduct(childNode[i].children);
-            }
-          }
-        }
-      });
-      const sampleDataPromises = allProductData.map(async (list) => {
-        const safetyDatas = await SAFETY.findOne({
-          projectId: data.projectId,
-          productId: list.id,
-        }).populate("productId");
-
-        // If no results found, return an object with productId and null values
-        return {
-          productId: list,
-          safetyData: safetyDatas || null,
-        };
-      });
-
-      const sampleData = await Promise.all(sampleDataPromises);
-
-      // Flatten the sampleData array if it contains nested arrays
-      const flattenedSampleData = sampleData.flat();
-
-      res.status(201).json({
-        message: "Get Product List Tree Structure",
-        data: flattenedSampleData,
-      });
+    if (reportType == 2) {
+      allProductData = allProductData.filter((p) => p.category === "Assembly");
     } else if (reportType == 3) {
-      const treeStructure = await productTreeStructure
-        .find({ projectId: data.projectId })
-        .populate("projectId")
-        .populate("companyId");
-      const allProductData = [];
-      treeStructure.map((list) => {
-        const addParentProduct = list.treeStructure;
-        if (
-          addParentProduct.status == "active" &&
-          addParentProduct.category == "Electronic"
-        ) {
-          allProductData.push(addParentProduct);
-        }
-        const childNode = addParentProduct.children;
-        getNodeTreeProduct(childNode);
-        async function getNodeTreeProduct(childNode) {
-          if (childNode != null) {
-            for (let i = 0; i < childNode.length; i++) {
-              if (
-                childNode[i].status == "active" &&
-                childNode[i].category == "Electronic"
-              ) {
-                allProductData.push(childNode[i]);
-              }
-              getNodeTreeProduct(childNode[i].children);
-            }
-          }
-        }
-      });
-      const sampleDataPromises = allProductData.map(async (list) => {
-        const safetyDatas = await SAFETY.findOne({
-          projectId: data.projectId,
-          productId: list.id,
-        }).populate("productId");
-
-        // If no results found, return an object with productId and null values
-        return {
-          productId: list,
-          safetyData: safetyDatas || null,
-        };
-      });
-
-      const sampleData = await Promise.all(sampleDataPromises);
-
-      // Flatten the sampleData array if it contains nested arrays
-      const flattenedSampleData = sampleData.flat();
-
-      res.status(201).json({
-        message: "Get Product List Tree Structure",
-        data: flattenedSampleData,
-      });
+      allProductData = allProductData.filter((p) => p.category === "Electronic");
     } else if (reportType == 4) {
-      const treeStructure = await productTreeStructure
-        .find({ projectId: data.projectId })
-        .populate("projectId")
-        .populate("companyId");
-      const allProductData = [];
-      treeStructure.map((list) => {
-        const addParentProduct = list.treeStructure;
-        if (
-          addParentProduct.status == "active" &&
-          addParentProduct.category == "Mechanical"
-        ) {
-          allProductData.push(addParentProduct);
-        }
-        const childNode = addParentProduct.children;
-        getNodeTreeProduct(childNode);
-        async function getNodeTreeProduct(childNode) {
-          if (childNode != null) {
-            for (let i = 0; i < childNode.length; i++) {
-              if (
-                childNode[i].status == "active" &&
-                childNode[i].category == "Mechanical"
-              ) {
-                allProductData.push(childNode[i]);
-              }
-              getNodeTreeProduct(childNode[i].children);
-            }
-          }
-        }
-      });
-      const sampleDataPromises = allProductData.map(async (list) => {
-        const safetyDatas = await SAFETY.findOne({
-          projectId: data.projectId,
-          productId: list.id,
-        }).populate("productId");
-
-        // If no results found, return an object with productId and null values
-        return {
-          productId: list,
-          safetyData: safetyDatas || null,
-        };
-      });
-      const sampleData = await Promise.all(sampleDataPromises);
-
-      // Flatten the sampleData array if it contains nested arrays
-      const flattenedSampleData = sampleData.flat();
-
-      res.status(201).json({
-        message: "Get Product List Tree Structure",
-        data: flattenedSampleData,
-      });
+      allProductData = allProductData.filter((p) => p.category === "Mechanical");
     } else if (reportType == 5) {
-      const treeStructure = await productTreeStructure
-        .find({ projectId: data.projectId })
-        .populate("projectId")
-        .populate("companyId");
+      allProductData = allProductData.filter(
+        (p) => p.category === "Mechanical" || p.category === "Electronic"
+      );
+    }
 
-      const allProductData = [];
+    const productIds = allProductData.map((p) => p.id);
+    const safetyResults = await SAFETY.find({
+      projectId,
+      productId: { $in: productIds },
+    }).populate("productId");
 
-      treeStructure.map((list) => {
-        const addParentProduct = list.treeStructure;
-        if (
-          (addParentProduct.status == "active" &&
-            addParentProduct.category == "Mechanical") ||
-          addParentProduct.category == "Electronic"
-        ) {
-          allProductData.push(addParentProduct);
-        }
-        const childNode = addParentProduct.children;
-        getNodeTreeProduct(childNode);
+    const safetyMap = new Map();
+    safetyResults.forEach((r) => {
+      const pid = r.productId?._id?.toString() ?? r.productId?.toString();
+      if (!safetyMap.has(pid)) safetyMap.set(pid, []);
+      safetyMap.get(pid).push(r);
+    });
 
-        async function getNodeTreeProduct(childNode) {
-          if (childNode != null) {
-            for (let i = 0; i < childNode.length; i++) {
-              if (
-                (childNode[i].status == "active" &&
-                  childNode[i].category == "Mechanical") ||
-                childNode[i].category == "Electronic"
-              ) {
-                allProductData.push(childNode[i]);
-              }
-              getNodeTreeProduct(childNode[i].children);
-            }
-          }
-        }
+    const flattenedSampleData = allProductData.map((list) => {
+      const results = safetyMap.get(list.id.toString()) || null;
+      return {
+        productId: list,
+        safetyData: reportType == 0 ? results : (results ? results[0] : null),
+      };
+    });
+
+    if (reportType == 1) {
+      const hierarchyType = parseInt(hType);
+      const filteredData = flattenedSampleData.filter((item) => {
+        const idx = String(item.productId.indexCount);
+        return hierarchyType === 1 ? !idx.includes(".") : idx.split(".").length === hierarchyType;
       });
 
-      const sampleDataPromises = allProductData.map(async (list) => {
-        const safetyDatas = await SAFETY.findOne({
-          projectId: data.projectId,
-          productId: list.id,
-        }).populate("productId");
+      return res.status(201).json({ message: "Get Product List Tree Structure", data: filteredData });
+    }
 
-        // If no results found, return an object with productId and null values
-        return {
-          productId: list,
-          safetyData: safetyDatas || null,
-        };
-      });
-      const sampleData = await Promise.all(sampleDataPromises);
-
-      // Flatten the sampleData array if it contains nested arrays
-
-      const flattenedSampleData = sampleData.flat();
-
-      // Grouping based on partType
+    if (reportType == 5) {
       const groupedData = flattenedSampleData.reduce((acc, product) => {
-        const partType = product.productId.partType || "Undefined"; // Default to 'Undefined' if partType is not specified
-        if (!acc[partType]) {
-          acc[partType] = [];
-        }
+        const partType = product.productId.partType || "Undefined";
+        if (!acc[partType]) acc[partType] = [];
         acc[partType].push(product);
         return acc;
       }, {});
 
-      // Converting grouped data to an array of objects
-      const groupedArray = Object.keys(groupedData).map((key, index) => ({
+      const groupedArray = Object.keys(groupedData).map((key) => ({
         partType: key,
         items: groupedData[key],
       }));
-      res.status(201).json({
-        message: "Get Product List Tree Structure",
-        data: groupedArray,
-      });
+
+      return res.status(201).json({ message: "Get Product List Tree Structure", data: groupedArray });
     }
+
+    res.status(201).json({ message: "Get Product List Tree Structure", data: flattenedSampleData });
   } catch (error) {
     next(error);
   }
