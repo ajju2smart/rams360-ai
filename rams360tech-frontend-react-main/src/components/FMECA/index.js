@@ -1201,44 +1201,17 @@ function Index(props) {
                 <div>
                   {canWrite ? (
                     <>
-                      <label
-                        htmlFor="file-input"
-                        style={{
-                          display: "inline-flex",
-                          alignItems: "center",
-                          gap: "6px",
-                          cursor: "pointer",
-                          padding: "6px 12px",
-                          borderRadius: "6px",
-                          background: "#1d5460",
-                          color: "#fff",
-                          fontSize: "12px",
-                          fontWeight: 600,
-                          letterSpacing: "0.02em",
-                          border: "none",
-                          whiteSpace: "nowrap",
-                          userSelect: "none",
-                          transition: "background 0.15s",
-                        }}
-                        onMouseEnter={e => e.currentTarget.style.background = "#153d48"}
-                        onMouseLeave={e => e.currentTarget.style.background = "#1d5460"}
-                      >
-                        <FontAwesomeIcon icon={faFileArrowUp} style={{ width: "13px" }} />
+                      <label htmlFor="file-input" className="bulk-import-btn">
+                        <FontAwesomeIcon icon={faFileArrowUp} />
                         Bulk Import
                       </label>
                       <input type="file" className="input-fields" id="file-input" onChange={importExcel} style={{ display: "none" }} />
                     </>
                   ) : (
-                    <div style={{
-                      display: "inline-flex", alignItems: "center", gap: "6px",
-                      padding: "6px 12px", borderRadius: "6px",
-                      background: "#1d5460", color: "#fff",
-                      fontSize: "12px", fontWeight: 600,
-                      opacity: 0.4, cursor: "not-allowed", whiteSpace: "nowrap",
-                    }}>
-                      <FontAwesomeIcon icon={faFileArrowUp} style={{ width: "13px" }} />
+                    <label className="bulk-import-btn disabled">
+                      <FontAwesomeIcon icon={faFileArrowUp} />
                       Bulk Import
-                    </div>
+                    </label>
                   )}
                 </div>
               </Tooltip>

@@ -32,8 +32,8 @@ import { useHistory } from "react-router-dom";
 import * as XLSX from "xlsx";
 import { toast } from "react-toastify";
 import {
-  faFileDownload,
-  faFileUpload,
+  faFileArrowUp,
+  faFileArrowDown,
 } from "@fortawesome/free-solid-svg-icons";
 import { useAuth } from "../../context/AuthContext";
 
@@ -1303,43 +1303,22 @@ const MTTRPrediction = (props, active) => {
                       writePermission === "undefined" ||
                       role === "admin" ||
                       (isOwner === true && createdBy === userId)) && (
-                        <div
-                          style={{
-                            display: "flex",
-                            justifyContent: "flex-end",
-                            alignItems: "center",
-                            marginTop: "1px",
-                            height: "40px",
-                          }}
-                        >
-                          <Tooltip placement="right" title="Import">
-                            <div style={{ marginRight: "8px" }}>
-                              <label
-                                htmlFor="file-input"
-                                className="import-export-btn"
-                              >
-                                <FontAwesomeIcon icon={faFileDownload} />
+                        <div style={{ display: "flex", justifyContent: "flex-end", alignItems: "center", gap: "8px", height: "40px" }}>
+                          {/* Bulk Import */}
+                          <Tooltip placement="right" title="Bulk Import Excel">
+                            <div>
+                              <label htmlFor="file-input" className="bulk-import-btn">
+                                <FontAwesomeIcon icon={faFileArrowUp} />
+                                Bulk Import
                               </label>
-                              <input
-                                type="file"
-                                className="input-fields"
-                                id="file-input"
-                                onChange={importExcel}
-                                style={{ display: "none" }}
-                              />
+                              <input type="file" className="input-fields" id="file-input" onChange={importExcel} style={{ display: "none" }} />
                             </div>
                           </Tooltip>
-                          <Tooltip placement="left" title="Export">
-                            <Button
-                              className="import-export-btn"
-                              style={{ marginLeft: "10px", borderStyle: "none", width: "40px", top: "-2px", minWidth: "38px", padding: "0px" }}
-                              onClick={() => exportToExcel(values)}
-                            >
-                              <FontAwesomeIcon
-                                icon={faFileUpload}
-                                style={{ width: "12px" }}
-                              />
-                            </Button>
+                          {/* Export */}
+                          <Tooltip placement="left" title="Export Excel">
+                            <button className="import-export-btn" onClick={() => exportToExcel(values)}>
+                              <FontAwesomeIcon icon={faFileArrowDown} />
+                            </button>
                           </Tooltip>
                         </div>
                       )}

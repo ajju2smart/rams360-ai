@@ -87,7 +87,8 @@ const ChatbotWidget = () => {
         title="RAMS360 AI Assistant"
         aria-label="Open AI Assistant"
       >
-        <FontAwesomeIcon icon={open ? faTimes : faCommentDots} size="lg" />
+        <FontAwesomeIcon icon={open ? faTimes : faRobot} size="lg" />
+        {!open && <span className="chatbot-fab__badge">AI</span>}
       </button>
 
       {/* Chat panel */}

@@ -18,8 +18,8 @@ import * as XLSX from "xlsx";
 import { toast } from "react-toastify";
 import { Tooltip } from "@material-ui/core";
 import {
-  faFileDownload,
-  faFileUpload,
+  faFileArrowUp,
+  faFileArrowDown,
 } from "@fortawesome/free-solid-svg-icons";
 import { useAuth } from "../../context/AuthContext";
 
@@ -1125,91 +1125,36 @@ function Index(props) {
               />
             </div>
 
-            <div
-              style={{
-                display: "flex",
-                justifyContent: "flex-end",
-                alignItems: "center",
-                marginTop: "8px",
-                height: "40px",
-              }}
-            >
-              {hasWriteAccess ? (
-                <>
-                  <Tooltip placement="right" title="Import Excel">
-                    <div style={{ marginRight: "8px" }}>
-                      <label
-                        htmlFor="file-input"
-                        className="import-export-btn"
-                        style={{ cursor: "pointer" }}
-                      >
-                        <FontAwesomeIcon icon={faFileDownload} />
+            <div style={{ display: "flex", justifyContent: "flex-end", alignItems: "center", gap: "8px", marginTop: "8px", height: "40px" }}>
+              {/* Import */}
+              <Tooltip placement="right" title={hasWriteAccess ? "Bulk Import Excel" : "Import disabled"}>
+                <div>
+                  {hasWriteAccess ? (
+                    <>
+                      <label htmlFor="file-input" className="bulk-import-btn">
+                        <FontAwesomeIcon icon={faFileArrowUp} />
+                        Bulk Import
                       </label>
-                      <input
-                        type="file"
-                        className="input-fields"
-                        id="file-input"
-                        onChange={importExcel}
-                        style={{ display: "none" }}
-                      />
-                    </div>
-                  </Tooltip>
-                  <Tooltip placement="left" title="Export Excel">
-                    <Button
-                      className="import-export-btn"
-                      style={{
-                        marginLeft: "10px",
-                        borderStyle: "none",
-                        width: "40px",
-                        minWidth: "40px",
-                        padding: "0px",
-                        cursor: "pointer",
-                      }}
-                      onClick={() => DownloadExcel()}
-                    >
-                      <FontAwesomeIcon
-                        icon={faFileUpload}
-                        style={{ width: "12px" }}
-                      />
-                    </Button>
-                  </Tooltip>
-                </>
-              ) : (
-                <>
-                  <Tooltip placement="right" title="Import disabled">
-                    <div
-                      style={{ marginRight: "8px", opacity: 0.5 }}
-                    >
-                      <div
-                        className="import-export-btn"
-                        style={{ cursor: "not-allowed" }}
-                      >
-                        <FontAwesomeIcon icon={faFileDownload} />
-                      </div>
-                    </div>
-                  </Tooltip>
-                  <Tooltip placement="left" title="Export disabled">
-                    <Button
-                      className="import-export-btn"
-                      style={{
-                        marginLeft: "10px",
-                        borderStyle: "none",
-                        width: "40px",
-                        minWidth: "40px",
-                        padding: "0px",
-                        cursor: "not-allowed",
-                        opacity: 0.5,
-                      }}
-                      disabled
-                    >
-                      <FontAwesomeIcon
-                        icon={faFileUpload}
-                        style={{ width: "15px" }}
-                      />
-                    </Button>
-                  </Tooltip>
-                </>
-              )}
+                      <input type="file" className="input-fields" id="file-input" onChange={importExcel} style={{ display: "none" }} />
+                    </>
+                  ) : (
+                    <label className="bulk-import-btn disabled">
+                      <FontAwesomeIcon icon={faFileArrowUp} />
+                      Bulk Import
+                    </label>
+                  )}
+                </div>
+              </Tooltip>
+              {/* Export */}
+              <Tooltip placement="left" title={hasWriteAccess ? "Export Excel" : "Export disabled"}>
+                <button
+                  className="import-export-btn"
+                  onClick={hasWriteAccess ? () => DownloadExcel() : undefined}
+                  disabled={!hasWriteAccess}
+                >
+                  <FontAwesomeIcon icon={faFileArrowDown} />
+                </button>
+              </Tooltip>
             </div>
           </div>
 
