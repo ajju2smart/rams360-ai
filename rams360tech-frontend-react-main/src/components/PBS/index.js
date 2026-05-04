@@ -28,6 +28,7 @@ import {
   FaChevronDown,
 } from "react-icons/fa";
 import { customStyles } from "../core/select";
+import ComponentDetail from "../ComponentDetail";
 import Tooltip from "@mui/material/Tooltip";
 import { toast } from "react-toastify";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
@@ -76,7 +77,7 @@ const injectStyles = () => {
 
     /* ── Base ── */
     .pbs-main {
-      margin-top: 50px;
+      /* ── ISSUE 1 FIX ── */ margin-top: var(--header-height, 60px);
       min-height: 100vh;
       font-family: var(--pbs-font);
       background: var(--pbs-bg);
@@ -142,6 +143,47 @@ const injectStyles = () => {
     @keyframes pbs-pulse {
       0%, 100% { opacity: 1; transform: scale(1); }
       50% { opacity: 0.5; transform: scale(1.3); }
+    }
+
+    /* ── PHASE D: Summary Bar ── */
+    .pbs-summary {
+      display: flex;
+      align-items: center;
+      gap: 24px;
+      padding: 14px 20px;
+      background: var(--pbs-white);
+      border: 1px solid var(--pbs-border);
+      border-radius: var(--pbs-radius-lg);
+      margin-bottom: 16px;
+      box-shadow: var(--pbs-shadow-sm);
+    }
+    .pbs-summary__item {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+    .pbs-summary__value {
+      font-size: 22px;
+      font-weight: 700;
+      color: var(--pbs-teal);
+      font-family: var(--pbs-mono);
+      line-height: 1;
+    }
+    .pbs-summary__value--filter {
+      color: var(--pbs-teal-dark);
+    }
+    .pbs-summary__label {
+      font-size: 11px;
+      color: var(--pbs-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      font-weight: 500;
+    }
+    .pbs-summary__divider {
+      width: 1px;
+      height: 32px;
+      background: var(--pbs-border);
+      flex-shrink: 0;
     }
 
     /* ── Toolbar ── */
@@ -780,7 +822,7 @@ const injectStyles = () => {
 
     /* Responsive */
     @media (max-width: 768px) {
-      .pbs-main { margin-top: 70px; padding-inline: 12px !important; }
+      .pbs-main { margin-top: calc(var(--header-height, 60px) + 10px); padding-inline: 12px !important; }
       .pbs-search-input { width: 100% !important; }
       .pbs-toolbar { flex-direction: column; align-items: stretch; }
     }
@@ -860,6 +902,8 @@ const uiReducer = (state, { type, payload }) => {
       patchModal: false,
       subProduct: false,
       childProductCriteria: false,
+      showDetail: false,
+      detailRow: null,
     };
     case "UPDATE": return { ...state, ...payload };
     default: return state;
@@ -880,6 +924,8 @@ const UI0 = {
   subProductError: false,
   childProductCriteria: false,
   search: "",
+  showDetail: false,
+  detailRow: null,
 };
 
 /* ─────────────────────────────────────────────
@@ -1742,6 +1788,7 @@ export default function PBS(props) {
               <Dropdown.Divider />
             </>}
 
+            {/* ── PHASE C2 FALLBACK — old Edit handler (opens ProductModal) ──
             <Dropdown.Item onClick={() => {
               onDropdownToggle(null);
               setPbs(p => ({
@@ -1754,14 +1801,17 @@ export default function PBS(props) {
                 environment: row.environment ? { value: row.environment, label: row.environment } : null,
                 temperature: row.temperature || "",
               }));
-              // DELETE the setProjectMeta line — no longer needed for edit
-              //setProjectMeta(p => ({ ...p, prefillTemp: row.temperature }));
               dispatchUi({
                 type: "MODAL", payload: {
                   childProductCriteria: row?.children?.length > 0,
                   mainProductModalOpen: true, patchModal: true, subProduct: false,
                 }
               });
+            }}>Edit</Dropdown.Item>
+            ── END FALLBACK ── */}
+            <Dropdown.Item onClick={() => {
+              onDropdownToggle(null);
+              dispatchUi({ type: "UPDATE", payload: { showDetail: true, detailRow: row } });
             }}>
               <svg width="12" height="12" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" /><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" /></svg>
               Edit
@@ -1899,6 +1949,28 @@ export default function PBS(props) {
       if (isMounted.current) setIsUpdating(false);
     }
   }, [withRefresh, pbs, projectId, resetModal, openStatusModal]);
+
+  // ── PHASE C2: Save handler for ComponentDetail tabbed editor ──
+  const patchFromDetail = useCallback(async (formData) => {
+    const row = ui.detailRow;
+    if (!row) return;
+    await withRefresh(() => Api.patch("/api/v1/product/update", {
+      productId: row.id,
+      productName: formData.productName,
+      category: formData.category || row.category,
+      reference: formData.referenceOrPosition,
+      environment: formData.environment?.value || formData.environment || null,
+      temperature: formData.temperature,
+      partNumber: formData.partNumber,
+      partType: formData.partType?.value || formData.partType || "-",
+      quantity: formData.quantity,
+      userId,
+      productTreeStructureId: row.parentId,
+      projectId,
+    }));
+    dispatchUi({ type: "UPDATE", payload: { showDetail: false, detailRow: null } });
+    openStatusModal("Updated successfully");
+  }, [withRefresh, ui.detailRow, userId, projectId, openStatusModal]);
 
   const deleteForm = useCallback(async () => {
     const pic = pbs.productIndexCount;
@@ -2047,16 +2119,45 @@ export default function PBS(props) {
             <Projectname projectId={projectId} />
           </div>
 
-          {/* Stats */}
+          {/* ── PHASE D: Summary bar ── */}
+          <div className="pbs-summary">
+            <div className="pbs-summary__item">
+              <div className="pbs-summary__value">
+                {rawData.filter(r => r.category === "Assembly").length}
+              </div>
+              <div className="pbs-summary__label">Assemblies</div>
+            </div>
+            <div className="pbs-summary__divider" />
+            <div className="pbs-summary__item">
+              <div className="pbs-summary__value">
+                {rawData.filter(r => r.category !== "Assembly").length}
+              </div>
+              <div className="pbs-summary__label">Components</div>
+            </div>
+            <div className="pbs-summary__divider" />
+            <div className="pbs-summary__item">
+              <div className="pbs-summary__value">{rawData.length}</div>
+              <div className="pbs-summary__label">Total Items</div>
+            </div>
+            {debouncedSearch && (
+              <>
+                <div className="pbs-summary__divider" />
+                <div className="pbs-summary__item">
+                  <div className="pbs-summary__value pbs-summary__value--filter">{flatRows.length}</div>
+                  <div className="pbs-summary__label">Filtered</div>
+                </div>
+              </>
+            )}
+          </div>
+          {/*
+          ── PHASE D FALLBACK — OLD stats bar ──
           <div className="pbs-stats-bar">
             <span className="pbs-stat-chip">
               <FontAwesomeIcon icon={faSitemap} style={{ fontSize: 10 }} />
               <strong>{rawData.length}</strong> total parts
             </span>
             {roots.length > 0 && (
-              <span className="pbs-stat-chip">
-                Root items: <strong>{roots.length}</strong>
-              </span>
+              <span className="pbs-stat-chip">Root items: <strong>{roots.length}</strong></span>
             )}
             {debouncedSearch && (
               <span className="pbs-stat-chip filter-chip">
@@ -2065,7 +2166,21 @@ export default function PBS(props) {
               </span>
             )}
           </div>
+          ── END FALLBACK ──
+          */}
 
+          {/* ── PHASE C2: ComponentDetail tabbed editor ── */}
+          {ui.showDetail && ui.detailRow && (
+            <ComponentDetail
+              component={ui.detailRow}
+              projectId={projectId}
+              onSave={patchFromDetail}
+              onCancel={() => dispatchUi({ type: "UPDATE", payload: { showDetail: false, detailRow: null } })}
+            />
+          )}
+
+          {/* ── PBS form + table (hidden when ComponentDetail is open) ── */}
+          {!ui.showDetail && <>
           <Formik
             enableReinitialize
             initialValues={formInitialValues}
@@ -2145,6 +2260,7 @@ export default function PBS(props) {
               selectedRowId={pbs.selectedRowId}
             />
           </div>
+          </> /* end !ui.showDetail */}
 
           <StatusModal
             show={ui.showStatusModal}

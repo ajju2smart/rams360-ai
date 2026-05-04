@@ -134,13 +134,13 @@ function PbsReport(props) {
       <div className="mt-3" />
       {sortedData.length > 0 ? (
         <>
-          <Row className="d-flex align-items-center justify-content-end">
-            <Col className="d-flex justify-content-end">
-              <Button className="report-save-btn" onClick={exportToExcel} style={{ marginRight: "8px" }}>
-                <FaFileExcel style={{ marginRight: "8px" }} /> Excel
-              </Button>
-            </Col>
-          </Row>
+          {/* ── PHASE F: action bar top-right of preview ── */}
+          {/* FALLBACK: <Row className="d-flex align-items-center justify-content-end"><Col className="d-flex justify-content-end"><Button className="report-save-btn" onClick={exportToExcel} style={{ marginRight: "8px" }}><FaFileExcel style={{ marginRight: "8px" }} /> Excel</Button></Col></Row> */}
+          <div className="report-action-bar">
+            <Button className="report-save-btn" onClick={exportToExcel}>
+              <FaFileExcel /> Excel
+            </Button>
+          </div>
 
           <div id="pdf-report-content">
             <div id="first-page-report">

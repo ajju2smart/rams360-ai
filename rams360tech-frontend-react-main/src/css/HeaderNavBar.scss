@@ -1,7 +1,9 @@
+/* ── PHASE E: token-driven header heights ── */
+/* FALLBACK (1-release): height: 50px; background-color: #162120; */
 .nav-head-main {
     width: 100%;
-    height: 50px;
-    background-color: #162120;
+    height: var(--header-height, 60px);
+    background-color: var(--color-brand-dark, #162120);
     display: flex;
     justify-content: flex-start;
     align-items: center;
@@ -12,8 +14,8 @@
 
 .nav-head-main-action {
     width: 100%;
-    height: 50px;
-    background-color: #162120;
+    height: var(--header-height, 60px);
+    background-color: var(--color-brand-dark, #162120);
     display: flex;
     justify-content: flex-start;
     align-items: center;

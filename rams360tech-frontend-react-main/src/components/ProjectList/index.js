@@ -12,6 +12,7 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faCircleExclamation } from "@fortawesome/free-solid-svg-icons";
 import { faCircleCheck } from "@fortawesome/free-solid-svg-icons";
 import { useAuth } from "../../context/AuthContext";
+import ProjectCard from "./ProjectCard";
 
 
 export default function ProjectList(props, list) {
@@ -27,6 +28,7 @@ export default function ProjectList(props, list) {
   const [confirmDeleteMsg, setConfirmDeleteMsg] = useState(false);
   const [projectDeleteMessage, setProjectDeleteMessage] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
+  const [statusFilter, setStatusFilter] = useState("all");
   const history = useHistory();
   const [show, setShow] = useState(false);
   const [owner, setOwner] = useState();
@@ -212,197 +214,144 @@ export default function ProjectList(props, list) {
             <span className="user-breadcrumb-current">Projects</span>
           </div>
 
+          {/* ── PHASE B: Card Grid toolbar ── */}
+          <div className="project-toolbar mt-4">
+            <Form.Control
+              type="text"
+              placeholder="Search by project name or number..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+            />
+            <Form.Select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)}>
+              <option value="all">All Status</option>
+              <option value="active">Active</option>
+              <option value="archived">Archived</option>
+            </Form.Select>
+            <Button
+              onClick={handleOpenModal}
+              disabled={isLoading}
+              style={{
+                background: "linear-gradient(135deg, #1d5460 0%, #2a7a8c 100%)",
+                border: "none",
+                borderRadius: "8px",
+                padding: "8px 20px",
+                fontWeight: "600",
+                fontSize: "13px",
+                letterSpacing: "0.5px",
+                color: "#fff",
+                whiteSpace: "nowrap",
+                boxShadow: "0 2px 8px rgba(29,84,96,0.3)",
+                marginLeft: "auto",
+              }}
+            >
+              {isLoading ? "Loading..." : "+ CREATE PROJECT"}
+            </Button>
+          </div>
+
+          {/* ── PHASE B: Card Grid ── */}
+          {(() => {
+            const filteredProjects = projectList?.filter((p) => {
+              const q = searchQuery.toLowerCase();
+              const matchesSearch = !q ||
+                p?.projectName?.toLowerCase().includes(q) ||
+                p?.projectNumber?.toLowerCase().includes(q);
+              const matchesStatus = statusFilter === "all" || (p.status || "active") === statusFilter;
+              return matchesSearch && matchesStatus;
+            }) || [];
+
+            /* ── ISSUE 2 FIX: include SuperAdmin role ── */
+            const isPrivileged = role === "admin" || role === "SuperAdmin";
+            const canEditProject = (p) => isPrivileged || (p?.isOwner === true && p?.createdBy === userId);
+            const canDeleteProject = (p) => isPrivileged || (p?.isOwner === true && p?.createdBy === userId);
+            /* FALLBACK: role === "admin" only — missing SuperAdmin
+            const canEditProject = (p) => role === "admin" || (p?.isOwner === true && p?.createdBy === userId);
+            const canDeleteProject = (p) => role === "admin" || (p?.isOwner === true && p?.createdBy === userId);
+            */
+
+            return (
+              <div className="project-grid">
+                {filteredProjects.length > 0 ? filteredProjects.map((p) => (
+                  <ProjectCard
+                    key={p.id}
+                    project={p}
+                    onClick={(proj) => history.push({
+                      pathname: `/pbs/${proj?.id}`,
+                      state: { projectId: proj?.id, state: ["openSidebar", "pbs"], pbsWrite: pbspermission },
+                    })}
+                    onEdit={(proj) => history.push({
+                      pathname: `/project/details/edit/${proj?.id}`,
+                      state: { projectID: proj?.id, company: proj?.companyId?.companyName, project: proj?.projectName },
+                    })}
+                    onOpenProject={(proj) => history.push({
+                      pathname: `/pbs/${proj?.id}`,
+                      state: { projectId: proj?.id, state: ["openSidebar", "pbs"], pbsWrite: pbspermission },
+                    })}
+                    onDelete={getDeleteProjectData}
+                    onPermissions={(proj) => {
+                      setIsLoading(true);
+                      setTimeout(() => {
+                        history.push({
+                          pathname: `/permissions/${proj?.id}`,
+                          state: {
+                            projectID: proj?.id,
+                            companyName: proj?.companyId?.companyName,
+                            projectName: proj?.projectName,
+                            companyId: proj?.companyId?._id,
+                          },
+                        });
+                        setIsLoading(false);
+                      }, 500);
+                    }}
+                    canEdit={canEditProject(p)}
+                    canDelete={canDeleteProject(p)}
+                  />
+                )) : (
+                  <div style={{ gridColumn: "1 / -1", textAlign: "center", padding: "60px 20px", color: "var(--color-text-muted)" }}>
+                    {searchQuery ? "No projects match your search." : "No Records to Display"}
+                  </div>
+                )}
+              </div>
+            );
+          })()}
+
+          {/*
+          ── PHASE B FALLBACK (1-release) — OLD TABLE — DO NOT DELETE YET ──
           <div className="mt-4 mb-3">
             <div style={{ display: "inline-flex", alignItems: "center", gap: "10px" }}>
-              <Form.Control
-                type="text"
-                placeholder="Search by project name or number..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                style={{ width: "320px", borderRadius: "8px", border: "1px solid #ced4da", height: "40px" }}
-              />
-              <Button
-                onClick={handleOpenModal}
-                disabled={isLoading}
-                style={{
-                  background: "linear-gradient(135deg, #1d5460 0%, #2a7a8c 100%)",
-                  border: "none",
-                  borderRadius: "8px",
-                  padding: "8px 20px",
-                  fontWeight: "600",
-                  fontSize: "13px",
-                  letterSpacing: "0.5px",
-                  color: "#fff",
-                  whiteSpace: "nowrap",
-                  boxShadow: "0 2px 8px rgba(29,84,96,0.3)",
-                  transition: "all 0.2s ease",
-                }}
-                onMouseEnter={(e) => e.currentTarget.style.background = "linear-gradient(135deg, #2a7a8c 0%, #1d5460 100%)"}
-                onMouseLeave={(e) => e.currentTarget.style.background = "linear-gradient(135deg, #1d5460 0%, #2a7a8c 100%)"}
-              >
+              <Form.Control type="text" placeholder="Search by project name or number..."
+                value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)}
+                style={{ width: "320px", borderRadius: "8px", border: "1px solid #ced4da", height: "40px" }} />
+              <Button onClick={handleOpenModal} disabled={isLoading}
+                style={{ background: "linear-gradient(135deg, #1d5460 0%, #2a7a8c 100%)", border: "none",
+                  borderRadius: "8px", padding: "8px 20px", fontWeight: "600", fontSize: "13px",
+                  letterSpacing: "0.5px", color: "#fff", whiteSpace: "nowrap",
+                  boxShadow: "0 2px 8px rgba(29,84,96,0.3)", transition: "all 0.2s ease" }}>
                 {isLoading ? "Loading..." : "+ CREATE PROJECT"}
               </Button>
             </div>
           </div>
           <Table bordered hover className="mt-2" style={{ bottom: "30px" }}>
-            <thead>
-              <tr>
-                <th>ID</th>
-                <th>Project No</th>
-                <th>Project Name</th>
-                <th class="text-center">Action</th>
-              </tr>
-            </thead>
+            <thead><tr><th>ID</th><th>Project No</th><th>Project Name</th><th>Action</th></tr></thead>
             <tbody>
-              {projectList?.filter((list) => {
-                const q = searchQuery.toLowerCase();
+              {projectList?.filter((list) => { const q = searchQuery.toLowerCase();
                 return !q || list?.projectName?.toLowerCase().includes(q) || list?.projectNumber?.toLowerCase().includes(q);
               }).length > 0 ? (
-                projectList?.filter((list) => {
-                  const q = searchQuery.toLowerCase();
+                projectList?.filter((list) => { const q = searchQuery.toLowerCase();
                   return !q || list?.projectName?.toLowerCase().includes(q) || list?.projectNumber?.toLowerCase().includes(q);
                 }).map((list, i) => (
-                  <tr className=" mt-3 mb-3">
-                    <td className="viewRow ">{i + 1}</td>
-                    <td className="viewRow">{list?.projectNumber}</td>
-                    <td className="viewRow">{list?.projectName}</td>
-
-                    {role === "admin" || (list?.isOwner === true && list?.createdBy === userId) ? (
-                      <td className="d-flex justify-content-center ">
-                        <Dropdown>
-                          <Dropdown.Toggle className="dropdown">
-                            <FaEllipsisV className="icon" />
-                          </Dropdown.Toggle>
-                          <Dropdown.Menu right>
-                            <Dropdown.Item
-                              style={{ textAlign: "center" }}
-                              className="user-dropitem-project"
-                              onClick={() =>
-                                history.push({
-                                  pathname: `/project/details/edit/${list?.id}`,
-                                  state: {
-                                    projectID: list?.id,
-                                    company: list?.companyId?.companyName,
-                                    project: projectName,
-                                  },
-                                })
-                              }
-                            >
-                              Project Details
-                            </Dropdown.Item>
-                            <Dropdown.Divider />
-                            <Dropdown.Item
-                              style={{ textAlign: "center" }}
-                              className="user-dropitem-project"
-                              onClick={() => {
-                                history.push({
-                                  pathname: `/pbs/${list?.id}`,
-                                  state: { projectId: list?.id, state: ["openSidebar", "pbs"], pbsWrite: pbspermission },
-                                });
-                              }}
-                            >
-                              Open Project
-                            </Dropdown.Item>
-                            <Dropdown.Divider />
-                            <Dropdown.Item
-                              style={{ textAlign: "center" }}
-                              className="user-dropitem-project"
-                              onClick={(e) => getDeleteProjectData(list)}
-                            >
-                              Delete Project
-                            </Dropdown.Item>
-                            <Dropdown.Divider />
-                            <Dropdown.Item
-                              style={{ textAlign: "center", position: "relative" }}
-                              className="user-dropitem-project"
-                              onClick={() => {
-                                setIsLoading(true);
-                                setTimeout(() => {
-                                  history.push({
-                                    pathname: `/permissions/${list?.id}`,
-                                    state: {
-                                      projectID: list?.id,
-                                      companyName: list?.companyId?.companyName,
-                                      projectName: list?.projectName,
-                                      companyId: list?.companyId?._id,
-                                    },
-                                  });
-                                  setIsLoading(false);
-                                }, 500);
-                              }}
-                              disabled={isLoading}
-                            >
-                              {isLoading ? (
-                                <>
-                                  <Spinner
-                                    animation="border"
-                                    size="sm"
-                                    role="status"
-                                    className="me-2"
-                                  />
-                                  Loading...
-                                </>
-                              ) : (
-                                "Edit Permission"
-                              )}
-                            </Dropdown.Item>
-                          </Dropdown.Menu>
-                        </Dropdown>
-                      </td>
-                    ) : (
-                      <td className="d-flex justify-content-center ">
-                        <Dropdown>
-                          <Dropdown.Toggle className="dropdown">
-                            <FaEllipsisV className="icon" />
-                          </Dropdown.Toggle>
-                          <Dropdown.Menu right>
-                            <Dropdown.Item
-                              style={{ textAlign: "center" }}
-                              className="user-dropitem-project"
-                              onClick={() =>
-                                history.push({
-                                  pathname: `/project/details/edit/${list?.id}`,
-                                  state: {
-                                    projectID: list?.id,
-                                    company: list?.companyId?.companyName,
-                                    project: projectName,
-                                  },
-                                })
-                              }
-                            >
-                              Project Details
-                            </Dropdown.Item>
-                            <Dropdown.Divider />
-                            <Dropdown.Item
-                              style={{ textAlign: "center" }}
-                              className="user-dropitem-project"
-                              onClick={() => {
-                                history.push({
-                                  pathname: `/pbs/${list?.id}`,
-                                  state: { projectId: list?.id, state: "openSideBar", pbsWrite: pbspermission },
-                                });
-                              }}
-                            >
-                              Open Project
-                            </Dropdown.Item>
-                            <Dropdown.Divider />
-                          </Dropdown.Menu>
-                        </Dropdown>
-                      </td>
-                    )}
+                  <tr key={i}><td>{i+1}</td><td>{list?.projectNumber}</td><td>{list?.projectName}</td>
+                    <td className="d-flex justify-content-center">
+                      <Dropdown><Dropdown.Toggle className="dropdown"><FaEllipsisV /></Dropdown.Toggle>
+                        <Dropdown.Menu right>...</Dropdown.Menu>
+                      </Dropdown>
+                    </td>
                   </tr>
                 ))
-              ) : (
-                <tr>
-                  <td colSpan="4">
-                    <h6 className="d-flex justify-content-center">
-                      {searchQuery ? "No projects match your search." : "No Records to Display"}
-                    </h6>
-                  </td>
-                </tr>
-              )}
+              ) : (<tr><td colSpan="4"><h6 className="d-flex justify-content-center">No Records to Display</h6></td></tr>)}
             </tbody>
           </Table>
+          ── END FALLBACK ──
+          */}
 
           <div>
             {isLoading && <Loader />}

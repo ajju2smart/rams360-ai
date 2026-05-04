@@ -221,10 +221,16 @@ h1 {
 }
 
 /* ── Global page wrapper — applied to all module pages ── */
+/* ── ISSUE 1 FIX: push content below fixed header ── */
 .user-workspace-container {
-  padding: 20px 24px;
-  min-height: calc(100vh - 80px);
+  padding: var(--header-height, 60px) 24px 20px;
+  min-height: calc(100vh - var(--header-height, 60px));
 }
+/*
+── ISSUE 1 FALLBACK (original):
+.user-workspace-container { padding: 20px 24px; min-height: calc(100vh - 80px); }
+── END FALLBACK ──
+*/
 .user-breadcrumb-bar {
   margin-bottom: 16px;
   font-size: 13px;

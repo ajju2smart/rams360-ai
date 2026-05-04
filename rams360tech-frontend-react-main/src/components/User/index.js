@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { Button, Col, Form, Modal, Row, Table, InputGroup, Dropdown, Card, Spinner } from "react-bootstrap";
+import CoreButton from "../core/Button";
 import Label from "../LabelComponent";
 import { ErrorMessage, Formik } from "formik";
 import Api from "../../Api";
@@ -299,40 +300,31 @@ function User() {
         <span className="user-breadcrumb-sep"> / </span>
         <span className="user-breadcrumb-current">User Management</span>
       </div>
+      {/* ── POLISH FIX: use project-toolbar layout + core Button ── */}
+      <div className="project-toolbar" style={{ marginBottom: 16 }}>
+        <Form.Control
+          type="text"
+          placeholder="Search by name, email or role..."
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+          style={{ width: "320px", borderRadius: "8px", border: "1px solid #ced4da", height: "40px" }}
+        />
+        {activeUserRole !== "Employee" && (
+          <CoreButton variant="primary" onClick={() => setShow(true)}>
+            + Create User
+          </CoreButton>
+        )}
+      </div>
+      {/*
+      ── FALLBACK (original inline-styled toolbar):
       <div className="mt-4 mb-2">
         <div style={{ display: "inline-flex", alignItems: "center", gap: "10px" }}>
-          <Form.Control
-            type="text"
-            placeholder="Search by name, email or role..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            style={{ width: "320px", borderRadius: "8px", border: "1px solid #ced4da", height: "40px" }}
-          />
-          {activeUserRole === "Employee" ? null : (
-            <Button
-              type="button"
-              onClick={() => setShow(true)}
-              style={{
-                background: "linear-gradient(135deg, #1d5460 0%, #2a7a8c 100%)",
-                border: "none",
-                borderRadius: "8px",
-                padding: "8px 20px",
-                fontWeight: "600",
-                fontSize: "13px",
-                letterSpacing: "0.5px",
-                color: "#fff",
-                whiteSpace: "nowrap",
-                boxShadow: "0 2px 8px rgba(29,84,96,0.3)",
-                transition: "all 0.2s ease",
-              }}
-              onMouseEnter={(e) => e.currentTarget.style.background = "linear-gradient(135deg, #2a7a8c 0%, #1d5460 100%)"}
-              onMouseLeave={(e) => e.currentTarget.style.background = "linear-gradient(135deg, #1d5460 0%, #2a7a8c 100%)"}
-            >
-              + CREATE USER
-            </Button>
-          )}
+          <Form.Control ... />
+          <Button style={{ background: "linear-gradient(...)" ...}}>+ CREATE USER</Button>
         </div>
       </div>
+      ── END FALLBACK ──
+      */}
       <Modal show={show} size="lg" centered backdrop="static">
         <div className="m-3">
           <Modal.Body>
