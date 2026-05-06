@@ -18,6 +18,7 @@ companySchema.method("toJSON", function () {
 });
 
 companySchema.set("autoIndex", true);
+companySchema.set("timestamps", true);
 
 const company = model("Company", companySchema);
 

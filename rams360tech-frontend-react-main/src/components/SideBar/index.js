@@ -30,6 +30,7 @@ import {
   faObjectUngroup,
   faFileInvoice,
   faChartSimple,
+  faGaugeHigh,
 } from "@fortawesome/free-solid-svg-icons";
 import { useAuth } from "../../context/AuthContext";
 
@@ -256,19 +257,28 @@ const SideBar = ({ onClick, active, value, props, openSideBar, userRole }) => {
         {isSuperAdmin ? (
           <>
             <NavItem
+              exact
+              to="/dashboard"
+              icon={faGaugeHigh}
+              label="Dashboard"
+              moduleKey="dashboard"
+            />
+            <NavItem
+              exact
               to="/company"
               icon={faBuildingUser}
               label="Company"
               moduleKey="company"
             />
             <NavItem
+              exact
               to="/company/admin"
               icon={faUser}
               label="Users"
               moduleKey="user"
             />
-
             <NavItem
+              exact
               to="/company/enquiries"
               icon={faUser}
               label="Enquiries"

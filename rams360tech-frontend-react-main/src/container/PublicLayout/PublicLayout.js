@@ -14,7 +14,7 @@ export const USER_ROLES = {
 };
 
 const getDefaultRoute = (role) =>
-  role === USER_ROLES.SUPER_ADMIN ? "/company" : "/project/list";
+  role === USER_ROLES.SUPER_ADMIN ? "/dashboard" : "/project/list";
 
 // ─── Protected Route ────────────────────────────────────────────────────────
 // AuthProvider blocks rendering until auth resolves, so no loading check needed
