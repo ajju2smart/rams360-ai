@@ -23,7 +23,7 @@ export async function handleChatMessage(req, res, next) {
       data: { reply },
     });
   } catch (err) {
-    console.error("[Chatbot] Error:", err.message);
+    console.error("[Chatbot] Error:", err.message, err?.status, err?.errorDetails);
     return res.status(500).json({
       status: "error",
       message: "AI service temporarily unavailable. Please try again.",

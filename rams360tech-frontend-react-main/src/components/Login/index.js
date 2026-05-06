@@ -60,7 +60,7 @@ function Login() {
           {/* Headline */}
           <h1 className="rl-hero__headline">
             Engineering<br />
-            <span className="rl-hero__headline--accent">Reliability</span><br />
+            <span className="rl-hero__headline--accent">Reliability</span>
             Reimagined
           </h1>
 
@@ -278,13 +278,14 @@ function Login() {
             )}
           </Formik>
 
+          {/* Copyright */}
+          <div className="rl-footer--inline">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+            <span>© 2026 Rams360 Engineering Intelligence. All rights reserved.</span>
+          </div>
+
         </div>
 
-        {/* Footer info at bottom right */}
-        <div className="rl-footer">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
-          <span>© 2026 Rams360 Engineering Intelligence. All rights reserved.</span>
-        </div>
       </div>
 
       {/* Floating Chatbot */}

@@ -38,7 +38,7 @@ function getClient() {
 export async function askChatbot(userMessage, history = []) {
   const client = getClient();
   const model = client.getGenerativeModel({
-    model: "gemini-1.5-flash",
+    model: "gemini-2.0-flash",
     systemInstruction: SYSTEM_PROMPT,
   });
 
@@ -46,8 +46,14 @@ export async function askChatbot(userMessage, history = []) {
     history,
     generationConfig: {
       maxOutputTokens: 1024,
-      temperature: 0.4,
+      temperature: 0.1,
     },
+    safetySettings: [
+      { category: "HARM_CATEGORY_HARASSMENT",        threshold: "BLOCK_NONE" },
+      { category: "HARM_CATEGORY_HATE_SPEECH",       threshold: "BLOCK_NONE" },
+      { category: "HARM_CATEGORY_SEXUALLY_EXPLICIT", threshold: "BLOCK_NONE" },
+      { category: "HARM_CATEGORY_DANGEROUS_CONTENT", threshold: "BLOCK_NONE" },
+    ],
   });
 
   const result = await chat.sendMessage(userMessage);
